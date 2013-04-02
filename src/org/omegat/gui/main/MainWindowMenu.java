@@ -363,6 +363,13 @@ public class MainWindowMenu implements ActionListener, MenuListener, IMainMenu {
         optionsMenu.add(optionsFontSelectionMenuItem = createMenuItem("TF_MENU_DISPLAY_FONT"));
         optionsMenu.add(optionsSetupFileFiltersMenuItem = createMenuItem("TF_MENU_DISPLAY_FILTERS"));
         optionsMenu.add(optionsSentsegMenuItem = createMenuItem("MW_OPTIONSMENU_SENTSEG"));
+
+        optionsMenu.add(optionsSpellAndMatchMenu = createMenu("MW_OPTIONSMENU_SPELLANDMATCH"));
+        optionsSpellAndMatchMenu
+                .add(optionsSpellCheckMenuItem = createMenuItem("MW_OPTIONSMENU_SPELLCHECK"));
+        optionsSpellAndMatchMenu
+                .add(optionsStopWordsMenuItem = createMenuItem("MW_OPTIONSMENU_STOPWORDS"));
+
         optionsMenu.add(optionsSpellCheckMenuItem = createMenuItem("MW_OPTIONSMENU_SPELLCHECK"));
         optionsMenu.add(optionsWorkflowMenuItem = createMenuItem("MW_OPTIONSMENU_WORKFLOW"));
         optionsMenu.add(optionsTagValidationMenuItem = createMenuItem("MW_OPTIONSMENU_TAGVALIDATION"));
@@ -641,7 +648,9 @@ public class MainWindowMenu implements ActionListener, MenuListener, IMainMenu {
     JMenuItem optionsRestoreGUIMenuItem;
     JMenuItem optionsSentsegMenuItem;
     JMenuItem optionsSetupFileFiltersMenuItem;
+    JMenu optionsSpellAndMatchMenu;
     JMenuItem optionsSpellCheckMenuItem;
+    JMenuItem optionsStopWordsMenuItem;
     JCheckBoxMenuItem optionsTabAdvanceCheckBoxMenuItem;
     JMenu optionsMachineTranslateMenu;
     JMenu optionsGlossaryMenu;

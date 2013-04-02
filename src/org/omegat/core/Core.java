@@ -5,6 +5,7 @@
 
  Copyright (C) 2008 Alex Buloichik
                2010 Wildrich Fourie
+               2013 Zoltan Bartko (bartkozoltan@bartkozoltan.com)
                Home page: http://www.omegat.org/
                Support center: http://groups.yahoo.com/group/OmegaT/
 
@@ -31,6 +32,7 @@ import java.util.Map;
 
 import org.omegat.core.data.IProject;
 import org.omegat.core.data.NotLoadedProject;
+import org.omegat.core.matching.StopWords;
 import org.omegat.core.spellchecker.ISpellChecker;
 import org.omegat.core.spellchecker.SpellChecker;
 import org.omegat.core.threads.IAutoSave;
@@ -73,6 +75,7 @@ import org.omegat.gui.tagvalidation.TagValidationTool;
  * 
  * @author Alex Buloichik (alex73mail@gmail.com)
  * @author Wildrich Fourie
+ * @author Zoltan Bartko
  */
 public class Core {
     private static IProject currentProject;
@@ -82,6 +85,11 @@ public class Core {
     private static IMatcher matcher;
     private static ISpellChecker spellChecker;
     private static FilterMaster filterMaster;
+
+    /**
+     * the stop words used in tokenization
+     */
+    private static StopWords stopWords;
 
     private static IAutoSave saveThread;
 
@@ -203,6 +211,8 @@ public class Core {
         spellChecker = new SpellChecker();
         multiple = new MultipleTransPane();
 
+        stopWords = new StopWords();
+
         SaveThread th = new SaveThread();
         saveThread = th;
         th.start();
@@ -252,5 +262,12 @@ public class Core {
 
     public static Map<String, String> getParams() {
         return cmdLineParams;
+    }
+
+    /**
+     * @return the stopWords
+     */
+    public static StopWords getStopWords() {
+        return stopWords;
     }
 }

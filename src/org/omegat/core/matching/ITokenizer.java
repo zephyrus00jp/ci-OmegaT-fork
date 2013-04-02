@@ -4,6 +4,7 @@
           glossaries, and translation leveraging into updated projects.
 
  Copyright (C) 2008 Alex Buloichik
+               2013 Zoltan Bartko (bartkozoltan@bartkozoltan.com)
                Home page: http://www.omegat.org/
                Support center: http://groups.yahoo.com/group/OmegaT/
 
@@ -30,6 +31,7 @@ import org.omegat.util.Token;
  * Interface for tokenize string engine.
  * 
  * @author Alex Buloichik (alex73mail@gmail.com)
+ * @author Zoltan Bartko
  */
 public interface ITokenizer {
     enum StemmingMode {
@@ -67,4 +69,9 @@ public interface ITokenizer {
      * There is no sense to cache results.
      */
     Token[] tokenizeAllExactly(String str);
+
+    /**
+     * clear the cache of the tokenizer.
+     */
+    void clearCache();
 }

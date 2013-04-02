@@ -10,7 +10,7 @@
                2011 John Moran, Didier Briel
                2012 Martin Fleurke, Wildrich Fourie, Didier Briel, Thomas Cordonnier,
                     Aaron Madlon-Kay
-               2013 Aaron Madlon-Kay
+               2013 Aaron Madlon-Kay, Zoltan Bartko
                Home page: http://www.omegat.org/
                Support center: http://groups.yahoo.com/group/OmegaT/
 
@@ -65,6 +65,7 @@ import org.omegat.util.xml.XMLStreamReader;
 public class Preferences {
     /** OmegaT-wide Preferences Filename */
     public static final String FILE_PREFERENCES = "omegat.prefs";
+    public static final String STOPWORD_PREFERENCES = "omegat.stop";
 
     // preference names
     public static final String SOURCE_LOCALE = "source_lang";

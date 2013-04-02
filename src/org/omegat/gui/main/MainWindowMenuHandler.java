@@ -45,6 +45,7 @@ import org.jdesktop.swingworker.SwingWorker;
 import org.omegat.core.Core;
 import org.omegat.core.CoreEvents;
 import org.omegat.core.KnownException;
+import org.omegat.core.data.IProject;
 import org.omegat.core.data.SourceTextEntry;
 import org.omegat.core.data.TMXEntry;
 import org.omegat.core.segmentation.SRX;
@@ -55,6 +56,7 @@ import org.omegat.gui.dialogs.ExternalTMXMatchesDialog;
 import org.omegat.gui.dialogs.FontSelectionDialog;
 import org.omegat.gui.dialogs.SaveOptionsDialog;
 import org.omegat.gui.dialogs.SpellcheckerConfigurationDialog;
+import org.omegat.gui.dialogs.StopWordDialog;
 import org.omegat.gui.dialogs.TagValidationOptionsDialog;
 import org.omegat.gui.dialogs.TeamOptionsDialog;
 import org.omegat.gui.dialogs.UserPassDialog;
@@ -732,6 +734,28 @@ public class MainWindowMenuHandler {
                         OStrings.getString("MW_REOPEN_TITLE"), JOptionPane.YES_NO_OPTION);
                 if (res == JOptionPane.YES_OPTION)
                     ProjectUICommands.projectReload();
+            }
+        }
+    }
+
+    /**
+     * opens the stop word configuration window
+     */
+    public void optionsStopWordsMenuItemActionPerformed() {
+        StopWordDialog swd = new StopWordDialog(mainWindow,true);
+        swd.setVisible(true);
+        if (swd.getReturnStatus() == StopWordDialog.RET_OK) {
+            try {
+                Core.getStopWords().doSave();
+                IProject project = Core.getProject();
+                if (project.isProjectLoaded()) {
+                    Core.getProject().getSourceTokenizer().clearCache();
+                    Core.getProject().getTargetTokenizer().clearCache();
+                    Core.getEditor().gotoEntry(Core.getEditor().getCurrentEntryNumber());
+                }
+            } catch (IOException ex) {
+                Log.logErrorRB(ex, "SWD_ERROR_UNABLE_TO_WRITE_FILE");
+                    Core.getMainWindow().displayErrorRB(ex, "SWD_ERROR_UNABLE_TO_WRITE_FILE");
             }
         }
     }

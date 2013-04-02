@@ -6,6 +6,7 @@
  Copyright (C) 2000-2006 Keith Godfrey, Maxym Mykhalchuk, and Henry Pijffers
                2007 Didier Briel, Zoltan Bartko
                2008 Alex Buloichik
+               2013 Zoltan Bartko
                Home page: http://www.omegat.org/
                Support center: http://groups.yahoo.com/group/OmegaT/
 
@@ -63,11 +64,9 @@ public class Tokenizer implements ITokenizer {
             public void onProjectChanged(PROJECT_CHANGE_TYPE eventType) {
                 if (eventType == PROJECT_CHANGE_TYPE.CLOSE) {
                     // clear cache
-                    synchronized (tokenCache) {
-                        tokenCache.clear();
+                    clearCache();
                     }
                 }
-            }
         });
     }
 
@@ -201,5 +200,12 @@ public class Tokenizer implements ITokenizer {
             }
         }
         return true;
+    }
+
+    @Override
+    public void clearCache() {
+        synchronized (tokenCache) {
+            tokenCache.clear();
+        }
     }
 }
