@@ -10,7 +10,7 @@
                2011 John Moran, Didier Briel
                2012 Martin Fleurke, Wildrich Fourie, Didier Briel, Thomas Cordonnier,
                     Aaron Madlon-Kay
-               2013 Aaron Madlon-Kay
+               2013 Aaron Madlon-Kay, Zoltan Bartko
                Home page: http://www.omegat.org/
                Support center: http://groups.yahoo.com/group/OmegaT/
 
@@ -302,6 +302,15 @@ public class Preferences {
 
     public static final String TAGS_VALID_REQUIRED = "tags_valid_required";
 
+    /** glossary auto-completion */
+    public static final String AC_GLOSSARY_SHOW_SOURCE = "ac_glossary_show_source";
+    public static final String AC_GLOSSARY_SHOW_TARGET_BEFORE_SOURCE = "ac_glossary_show_target_before_source";
+    public static final String AC_GLOSSARY_SEPARATOR = "ac_glossary_separator";
+    public static final String AC_GLOSSARY_SEPARATOR_DEFAULT = " =:= ";
+    public static final String AC_GLOSSARY_SORT_BY_SOURCE = "ac_glossary_sort_by_source";
+    public static final String AC_GLOSSARY_SORT_BY_LENGTH = "ac_glossary_sort_by_length";
+    public static final String AC_GLOSSARY_SORT_ALPHABETICALLY = "ac_glossary_sort_alphabetically";
+    
     /** Private constructor, because this file is singleton */
     static {
         m_loaded = false;

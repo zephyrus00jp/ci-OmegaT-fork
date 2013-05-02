@@ -54,6 +54,7 @@ import org.omegat.filters2.master.FilterMaster;
 import org.omegat.gui.dialogs.AboutDialog;
 import org.omegat.gui.dialogs.ExternalTMXMatchesDialog;
 import org.omegat.gui.dialogs.FontSelectionDialog;
+import org.omegat.gui.dialogs.GlossaryAutoCompleterOptionsDialog;
 import org.omegat.gui.dialogs.LastChangesDialog;
 import org.omegat.gui.dialogs.SaveOptionsDialog;
 import org.omegat.gui.dialogs.SpellcheckerConfigurationDialog;
@@ -679,6 +680,10 @@ public class MainWindowMenuHandler {
                 mainWindow.menu.optionsTransTipsExactMatchMenuItem.isSelected());
     }
 
+    public void optionsAutoCompleteGlossaryMenuItemActionPerformed() {
+        new GlossaryAutoCompleterOptionsDialog(mainWindow).setVisible(true);
+    }
+    
     /**
      * Displays the font dialog to allow selecting the font for source, target text (in main window) and for
      * match and glossary windows.

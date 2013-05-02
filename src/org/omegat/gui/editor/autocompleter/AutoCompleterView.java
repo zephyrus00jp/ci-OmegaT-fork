@@ -29,6 +29,7 @@ import java.util.List;
 
 import org.omegat.core.Core;
 import org.omegat.tokenizer.ITokenizer;
+import org.omegat.util.Preferences;
 
 /**
  * A view of the auto-completer.
@@ -46,6 +47,11 @@ public abstract class AutoCompleterView {
      * the completer
      */
     protected AutoCompleter completer;
+    
+    /**
+     * the separator string between source and target
+     */
+    private String separator;
     
     /**
      * Creates a new auto-completer view.
@@ -78,5 +84,39 @@ public abstract class AutoCompleterView {
      */
     public ITokenizer getTokenizer() {
         return Core.getProject().getTargetTokenizer();
+    }
+
+    /**
+     * @return the separator
+     */
+    public String getSeparator() {
+        return separator;
+    }
+
+    /**
+     * @param separator the separator to set
+     */
+    public void setSeparator(String separator) {
+        if (separator.trim().equals("")) {
+            this.separator = null;
+        } else {
+            this.separator = separator;
+        }
+    }
+    
+    public String getTargetString(String input) {
+        //String result = input;
+        if (separator == null)
+            return input;
+        
+        int separatorPosition = input.indexOf(separator);
+        if (separatorPosition == -1)
+            return input;
+        
+        if (!Preferences.isPreference(Preferences.AC_GLOSSARY_SHOW_TARGET_BEFORE_SOURCE)) {
+            return input.substring(separatorPosition+separator.length());
+        } else {
+            return input.substring(0, separatorPosition);
+        }
     }
 }

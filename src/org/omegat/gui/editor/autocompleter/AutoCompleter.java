@@ -143,13 +143,13 @@ public class AutoCompleter {
             if ((StaticUtils.isKey(e, KeyEvent.VK_ENTER, 0))) {
                 // process key ENTER
                 popup.setVisible(false); 
-                acceptedListItem((String)list.getSelectedValue()); 
+                acceptedListItem(getSelectedValue()); 
                 setVisible(false);
                 return true;
             }
             
             if ((StaticUtils.isKey(e, KeyEvent.VK_INSERT, 0))) {
-                acceptedListItem((String)list.getSelectedValue()); 
+                acceptedListItem(getSelectedValue()); 
                 updatePopup();
                 return true;
             }
@@ -202,6 +202,14 @@ public class AutoCompleter {
     public void hidePopup() {
         setVisible(false);
         popup.setVisible(false); 
+    }
+    
+    /**
+     * Returns the currently selected value.
+     * @return 
+     */
+    private String getSelectedValue() {
+        return views.get(currentView).getTargetString((String)list.getSelectedValue());
     }
     
     /** 
