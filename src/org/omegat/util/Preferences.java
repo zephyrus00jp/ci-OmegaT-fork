@@ -311,6 +311,14 @@ public class Preferences {
     public static final String AC_GLOSSARY_SORT_BY_LENGTH = "ac_glossary_sort_by_length";
     public static final String AC_GLOSSARY_SORT_ALPHABETICALLY = "ac_glossary_sort_alphabetically";
     
+    /** autotext auto-completion */
+    public static final String AC_AUTOTEXT_FILE_NAME = "omegat.autotext";
+    public static final String AC_AUTOTEXT_SEPARATOR = "ac_autotext_separator";
+    public static final String AC_AUTOTEXT_SEPARATOR_DEFAULT = " =:= ";
+    public static final String AC_AUTOTEXT_SORT_BY_LENGTH = "ac_autotext_sort_by_length";
+    public static final String AC_AUTOTEXT_SORT_ALPHABETICALLY = "ac_autotext_sort_alphabetically";
+    public static final String AC_AUTOTEXT_EXCLUDE_ABBREVS = "ac_autotext_exclude_abbrevs";
+    
     /** Private constructor, because this file is singleton */
     static {
         m_loaded = false;

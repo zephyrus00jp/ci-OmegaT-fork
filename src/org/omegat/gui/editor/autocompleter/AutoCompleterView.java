@@ -106,15 +106,15 @@ public abstract class AutoCompleterView {
     
     public String getTargetString(String input) {
         //String result = input;
-        if (separator == null)
+        if (getSeparator() == null)
             return input;
         
-        int separatorPosition = input.indexOf(separator);
+        int separatorPosition = input.indexOf(getSeparator());
         if (separatorPosition == -1)
             return input;
         
         if (!Preferences.isPreference(Preferences.AC_GLOSSARY_SHOW_TARGET_BEFORE_SOURCE)) {
-            return input.substring(separatorPosition+separator.length());
+            return input.substring(separatorPosition+getSeparator().length());
         } else {
             return input.substring(0, separatorPosition);
         }

@@ -87,7 +87,7 @@ public class EditorTextArea3 extends JEditorPane {
     protected String currentWord;
 
     protected AutoCompleter autoCompleter = new AutoCompleter(this);
-
+    
     public EditorTextArea3(EditorController controller) {
         this.controller = controller;
         setEditorKit(new StyledEditorKit() {

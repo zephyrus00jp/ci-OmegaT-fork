@@ -52,6 +52,7 @@ import org.omegat.core.segmentation.SRX;
 import org.omegat.core.spellchecker.ISpellChecker;
 import org.omegat.filters2.master.FilterMaster;
 import org.omegat.gui.dialogs.AboutDialog;
+import org.omegat.gui.dialogs.AutotextAutoCompleterOptionsDialog;
 import org.omegat.gui.dialogs.ExternalTMXMatchesDialog;
 import org.omegat.gui.dialogs.FontSelectionDialog;
 import org.omegat.gui.dialogs.GlossaryAutoCompleterOptionsDialog;
@@ -682,6 +683,10 @@ public class MainWindowMenuHandler {
 
     public void optionsAutoCompleteGlossaryMenuItemActionPerformed() {
         new GlossaryAutoCompleterOptionsDialog(mainWindow).setVisible(true);
+    }
+    
+    public void optionsAutoCompleteAutoTextMenuItemActionPerformed() {
+        new AutotextAutoCompleterOptionsDialog(mainWindow).setVisible(true);
     }
     
     /**
