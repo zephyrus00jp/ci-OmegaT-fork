@@ -184,4 +184,8 @@ public class OConsts {
     public static final String REMOTE_SC_DICTIONARY_LIST_LOCATION = "http://download.services.openoffice.org/files/contrib/dictionaries/";
 
     public static final String segmentMarkerString = "<" + OStrings.getSegmentMarker() + ">";
+    
+    public static final String AC_AUTOTEXT_SEPARATOR = " = ";
+    
+    public static final String AC_AUTOTEXT_COMMENT_SEPARATOR = " // ";
 }

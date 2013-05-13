@@ -25,7 +25,7 @@
 
 package org.omegat.gui.editor.autotext;
 
-import org.omegat.core.Core;
+import org.omegat.util.OConsts;
 
 /**
  *
@@ -33,20 +33,33 @@ import org.omegat.core.Core;
  */
 public class AutotextPair {
 
-    public String source;
-    public String target;
+    public String source = null;
+    public String target = null;
+    public String comment = null;
 
-    public AutotextPair(String source, String target) {
-        this.source = source;
-        this.target = target;
+    public AutotextPair(String source, String target, String comment) {
+        if (!source.isEmpty())
+            this.source = source;
+        if (!target.isEmpty())
+            this.target = target;
+        if (!comment.isEmpty())
+            this.comment = comment;
     }
     
     @Override
     public String toString() {
-        if (source == null) {
-            return target;
-        } else {
-            return source + Core.getAutoText().getSeparator() + target;
+        String result = "";     
+        if (source != null) {
+            result = source + OConsts.AC_AUTOTEXT_SEPARATOR;
         }
+        if (target != null) {
+            result = result + target;
+        }
+        
+        if (comment != null) {
+            result = result + OConsts.AC_AUTOTEXT_COMMENT_SEPARATOR + comment;
+        }
+        
+        return result;
     }
 }

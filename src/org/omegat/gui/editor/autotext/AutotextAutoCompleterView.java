@@ -31,6 +31,7 @@ import java.util.List;
 import org.omegat.core.Core;
 import org.omegat.gui.editor.autocompleter.AutoCompleter;
 import org.omegat.gui.editor.autocompleter.AutoCompleterView;
+import org.omegat.util.OConsts;
 import org.omegat.util.OStrings;
 import org.omegat.util.Preferences;
 
@@ -42,11 +43,8 @@ public class AutotextAutoCompleterView extends AutoCompleterView {
 
     public AutotextAutoCompleterView(AutoCompleter completer) {
         super(OStrings.getString("AC_AUTOTEXT_VIEW"), completer);
-    }
-    
-    @Override
-    public String getSeparator() {
-        return Core.getAutoText().getSeparator();
+        setSeparator(OConsts.AC_AUTOTEXT_SEPARATOR);
+        setCommentSeparator(OConsts.AC_AUTOTEXT_COMMENT_SEPARATOR);
     }
             
     @Override
@@ -56,11 +54,7 @@ public class AutotextAutoCompleterView extends AutoCompleterView {
         String candidate;
         for (AutotextPair s : Core.getAutoText().getList()) {
             
-            if (s.source != null) {
-                candidate = s.source;
-            } else {
-                candidate = s.target;
-            }
+            candidate = s.toString();
             if (candidate.toLowerCase().startsWith(wordChunk.toLowerCase())) {
                 entryList.add(s);
             }
@@ -78,5 +72,12 @@ public class AutotextAutoCompleterView extends AutoCompleterView {
         }
         return result;
     }
+
+    @Override
+    public String stripSource(String input, int separatorPosition) {
+        return input.substring(separatorPosition+getSeparator().length());
+    }
+    
+    
     
 }

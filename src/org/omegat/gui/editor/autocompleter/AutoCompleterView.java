@@ -29,6 +29,7 @@ import java.util.List;
 
 import org.omegat.core.Core;
 import org.omegat.tokenizer.ITokenizer;
+import org.omegat.util.OStrings;
 import org.omegat.util.Preferences;
 
 /**
@@ -52,6 +53,8 @@ public abstract class AutoCompleterView {
      * the separator string between source and target
      */
     private String separator;
+    
+    private String commentSeparator;
     
     /**
      * Creates a new auto-completer view.
@@ -104,19 +107,49 @@ public abstract class AutoCompleterView {
         }
     }
     
-    public String getTargetString(String input) {
-        //String result = input;
-        if (getSeparator() == null)
-            return input;
-        
-        int separatorPosition = input.indexOf(getSeparator());
-        if (separatorPosition == -1)
-            return input;
-        
-        if (!Preferences.isPreference(Preferences.AC_GLOSSARY_SHOW_TARGET_BEFORE_SOURCE)) {
-            return input.substring(separatorPosition+getSeparator().length());
+    /**
+     * @return the separator
+     */
+    public String getCommentSeparator() {
+        return commentSeparator;
+    }
+
+    /**
+     * @param separator the separator to set
+     */
+    public void setCommentSeparator(String commentSeparator) {
+        if (commentSeparator.trim().equals("")) {
+            this.commentSeparator = null;
         } else {
-            return input.substring(0, separatorPosition);
+            this.commentSeparator = commentSeparator;
         }
+    }
+    
+    public String stripComment(String input) {
+        if (getCommentSeparator() == null)
+            return input;
+        
+        int commentSeparatorPosition = input.indexOf(getCommentSeparator());
+        if (commentSeparatorPosition == -1)
+            return input;
+        
+        return input.substring(0, commentSeparatorPosition);
+    }
+    
+    public String stripSource(String input, int separatorPosition) {
+        return input.substring(0, separatorPosition);
+    }
+    
+    public String getTargetString(String input) {
+        String result = stripComment(input);
+        
+        if (getSeparator() == null)
+            return result;
+        
+        int separatorPosition = result.indexOf(getSeparator());
+        if (separatorPosition == -1)
+            return result;
+        
+        return stripSource(result, separatorPosition);
     }
 }

@@ -12,7 +12,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import javax.swing.DefaultListModel;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
@@ -22,6 +21,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import org.omegat.core.Core;
 import org.omegat.gui.editor.autotext.Autotext;
 import org.omegat.gui.editor.autotext.AutotextPair;
+import org.omegat.gui.editor.autotext.AutotextTableModel;
 import org.omegat.util.OStrings;
 import org.omegat.util.Preferences;
 
@@ -38,7 +38,8 @@ public class AutotextAutoCompleterOptionsDialog extends javax.swing.JDialog {
     
     private int returnStatus = RET_CANCEL;
     
-    DefaultListModel model = new DefaultListModel();
+    AutotextTableModel model = new AutotextTableModel();
+    
     File theFile = null;
     File files[];
     
@@ -75,33 +76,12 @@ public class AutotextAutoCompleterOptionsDialog extends javax.swing.JDialog {
         FileFilter filter = new FileNameExtensionFilter(OStrings.getString("AC_AUTOTEXT_FILE"), "autotext");
         fc.addChoosableFileFilter(filter);
         
-        entryTextArea.setFont(this.getFont());
-        //load entries
-        loadEntries();
-    }
-
-    private void loadEntries() {
-        separatorTextField.setText(Core.getAutoText().getSeparator());
-        StringBuilder builder = new StringBuilder();
-        for (AutotextPair pair:Core.getAutoText().getList()) {
-            builder.append(pair.toString());
-            builder.append("\n");
-        }
-        entryTextArea.setText(builder.toString());
+        //entryTextArea.setFont(this.getFont());
+        model.load();
+        entryTable.setModel(model);
+        model.addTableModelListener(entryTable);
     }
     
-    private boolean isSeparatorCorrect() {
-        if (separatorTextField.getText().trim().isEmpty()) {
-            int result = JOptionPane.showConfirmDialog(this, OStrings.getString("AC_AUTOTEXT_WRONG_SEPARATOR_QUESTION"),
-                     OStrings.getString("AC_AUTOTEXT_WRONG_SEPARATOR"), 
-                    JOptionPane.YES_NO_OPTION);
-            if (result == JOptionPane.YES_OPTION) {
-                separatorTextField.setText(Preferences.AC_AUTOTEXT_SEPARATOR_DEFAULT);
-            } else
-                return false;
-        }
-        return true;
-    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -119,13 +99,12 @@ public class AutotextAutoCompleterOptionsDialog extends javax.swing.JDialog {
         sortAlphabeticallyCheckBox = new javax.swing.JCheckBox();
         excludeAbbreviationsCheckBox = new javax.swing.JCheckBox();
         jPanel2 = new javax.swing.JPanel();
-        jLabel3 = new javax.swing.JLabel();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        entryTextArea = new javax.swing.JTextArea();
         loadButton = new javax.swing.JButton();
         saveButton = new javax.swing.JButton();
-        separatorLabel = new javax.swing.JLabel();
-        separatorTextField = new javax.swing.JTextField();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        entryTable = new javax.swing.JTable();
+        addNewRowButton = new javax.swing.JButton();
+        removeEntryButton = new javax.swing.JButton();
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -200,12 +179,6 @@ public class AutotextAutoCompleterOptionsDialog extends javax.swing.JDialog {
 
         jPanel2.setBorder(javax.swing.BorderFactory.createTitledBorder(OStrings.getString("AC_AUTOTEXT_ENTRIES_PANEL"))); // NOI18N
 
-        jLabel3.setText(OStrings.getString("AC_AUTOTEXT_ENTRIES")); // NOI18N
-
-        entryTextArea.setColumns(20);
-        entryTextArea.setRows(5);
-        jScrollPane1.setViewportView(entryTextArea);
-
         org.openide.awt.Mnemonics.setLocalizedText(loadButton, OStrings.getString("AC_AUTOTEXT_BUTTON_LOAD")); // NOI18N
         loadButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -220,7 +193,32 @@ public class AutotextAutoCompleterOptionsDialog extends javax.swing.JDialog {
             }
         });
 
-        separatorLabel.setText(OStrings.getString("AC_AUTOTEXT_SEPARATOR")); // NOI18N
+        entryTable.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null},
+                {null, null, null},
+                {null, null, null},
+                {null, null, null}
+            },
+            new String [] {
+                "Abbreviation", "Text", "Comment"
+            }
+        ));
+        jScrollPane2.setViewportView(entryTable);
+
+        org.openide.awt.Mnemonics.setLocalizedText(addNewRowButton, OStrings.getString("BUTTON_ADD_NODOTS")); // NOI18N
+        addNewRowButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                addNewRowButtonActionPerformed(evt);
+            }
+        });
+
+        org.openide.awt.Mnemonics.setLocalizedText(removeEntryButton, OStrings.getString("BUTTON_REMOVE")); // NOI18N
+        removeEntryButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                removeEntryButtonActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -228,40 +226,31 @@ public class AutotextAutoCompleterOptionsDialog extends javax.swing.JDialog {
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addComponent(jLabel3)
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
-                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addGroup(jPanel2Layout.createSequentialGroup()
-                                .addComponent(separatorLabel)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(separatorTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 164, Short.MAX_VALUE))
-                            .addComponent(jScrollPane1))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(loadButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(saveButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 290, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(loadButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(saveButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(removeEntryButton, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(addNewRowButton, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(separatorLabel)
-                    .addComponent(separatorTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jLabel3)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel2Layout.createSequentialGroup()
                         .addComponent(loadButton)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(saveButton))
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 284, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addComponent(saveButton)
+                        .addGap(37, 37, 37)
+                        .addComponent(addNewRowButton)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(removeEntryButton)
+                        .addGap(0, 153, Short.MAX_VALUE))
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
+                .addContainerGap())
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -305,7 +294,7 @@ public class AutotextAutoCompleterOptionsDialog extends javax.swing.JDialog {
             selectedFile = fc.getSelectedFile();
             try {
                 Core.getAutoText().load(selectedFile.getCanonicalPath());
-                loadEntries();
+                model.load();
             } catch (IOException ex) {
                 Logger.getLogger(AutotextAutoCompleterOptionsDialog.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -314,21 +303,16 @@ public class AutotextAutoCompleterOptionsDialog extends javax.swing.JDialog {
 
     private void saveButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveButtonActionPerformed
         Autotext autoText = new Autotext(null);
-        if (isSeparatorCorrect()) {
-            int result = fc.showSaveDialog(this);
-            if (result != JFileChooser.APPROVE_OPTION) {
-                return;
-            }
-            autoText.setSeparator(separatorTextField.getText());
-            String lines[] = entryTextArea.getText().split("\n");
-            for (String line:lines) {
-                autoText.processLine(line);
-            }
-            try {
-                autoText.save(fc.getSelectedFile().getCanonicalPath());
-            } catch (IOException ex) {
-                JOptionPane.showMessageDialog(this, OStrings.getString("AC_AUTOTEXT_UNABLE_TO_SAVE"));
-            }
+        
+        int result = fc.showSaveDialog(this);
+        if (result != JFileChooser.APPROVE_OPTION) {
+            return;
+        }
+        model.store(autoText);
+        try {
+            autoText.save(fc.getSelectedFile().getCanonicalPath());
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(this, OStrings.getString("AC_AUTOTEXT_UNABLE_TO_SAVE"));
         }
     }//GEN-LAST:event_saveButtonActionPerformed
 
@@ -338,30 +322,33 @@ public class AutotextAutoCompleterOptionsDialog extends javax.swing.JDialog {
 
     private void okButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_okButtonActionPerformed
         Autotext autoText = Core.getAutoText();
-        if (isSeparatorCorrect()) {
-            autoText.getList().clear();
-            autoText.setSeparator(separatorTextField.getText());
-            String lines[] = entryTextArea.getText().split("\n");
-            for (String line:lines) {
-                autoText.processLine(line);
-            }
-            try {
-                autoText.save();
-            } catch (IOException ex) {
-                JOptionPane.showMessageDialog(this, OStrings.getString("AC_AUTOTEXT_UNABLE_TO_SAVE"));
-                return;
-            }
+        
+        model.store(autoText);
+        try {
+            autoText.save();
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(this, OStrings.getString("AC_AUTOTEXT_UNABLE_TO_SAVE"));
+        }
             
-            Preferences.setPreference(Preferences.AC_AUTOTEXT_SORT_BY_LENGTH, sortByLengthCheckBox.isSelected());
-            Preferences.setPreference(Preferences.AC_AUTOTEXT_SORT_ALPHABETICALLY, sortAlphabeticallyCheckBox.isSelected());
-            Preferences.setPreference(Preferences.AC_AUTOTEXT_EXCLUDE_ABBREVS, excludeAbbreviationsCheckBox.isSelected());
-            doClose(RET_OK);
-        }   
+        Preferences.setPreference(Preferences.AC_AUTOTEXT_SORT_BY_LENGTH, sortByLengthCheckBox.isSelected());
+        Preferences.setPreference(Preferences.AC_AUTOTEXT_SORT_ALPHABETICALLY, sortAlphabeticallyCheckBox.isSelected());
+        Preferences.setPreference(Preferences.AC_AUTOTEXT_EXCLUDE_ABBREVS, excludeAbbreviationsCheckBox.isSelected());
+        doClose(RET_OK);   
     }//GEN-LAST:event_okButtonActionPerformed
 
     private void sortAlphabeticallyCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sortAlphabeticallyCheckBoxActionPerformed
         excludeAbbreviationsCheckBox.setEnabled(sortAlphabeticallyCheckBox.isSelected());
     }//GEN-LAST:event_sortAlphabeticallyCheckBoxActionPerformed
+
+    private void addNewRowButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addNewRowButtonActionPerformed
+        // TODO add your handling code here:
+        model.addRow(new AutotextPair("","",""), entryTable.getSelectedRow());
+    }//GEN-LAST:event_addNewRowButtonActionPerformed
+
+    private void removeEntryButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_removeEntryButtonActionPerformed
+        if (entryTable.getSelectedRow() != -1)
+            model.removeRow(entryTable.getSelectedRow());
+    }//GEN-LAST:event_removeEntryButtonActionPerformed
 
     private void doClose(int retStatus) {
         returnStatus = retStatus;
@@ -370,19 +357,18 @@ public class AutotextAutoCompleterOptionsDialog extends javax.swing.JDialog {
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton addNewRowButton;
     private javax.swing.JButton cancelButton;
-    private javax.swing.JTextArea entryTextArea;
+    private javax.swing.JTable entryTable;
     private javax.swing.JCheckBox excludeAbbreviationsCheckBox;
-    private javax.swing.JLabel jLabel3;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
-    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JButton loadButton;
     private javax.swing.JButton okButton;
+    private javax.swing.JButton removeEntryButton;
     private javax.swing.JButton saveButton;
-    private javax.swing.JLabel separatorLabel;
-    private javax.swing.JTextField separatorTextField;
     private javax.swing.JCheckBox sortAlphabeticallyCheckBox;
     private javax.swing.JCheckBox sortByLengthCheckBox;
     // End of variables declaration//GEN-END:variables

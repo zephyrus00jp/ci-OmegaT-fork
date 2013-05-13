@@ -94,6 +94,15 @@ public class GlossaryAutoCompleterView extends AutoCompleterView {
         
         return result;
     }   
+
+    @Override
+    public String stripSource(String input, int separatorPosition) {
+        if (!Preferences.isPreference(Preferences.AC_GLOSSARY_SHOW_TARGET_BEFORE_SOURCE)) {
+            return input.substring(separatorPosition+getSeparator().length());
+        } else {
+            return input.substring(0, separatorPosition);
+        }
+    }
     
     
 }
