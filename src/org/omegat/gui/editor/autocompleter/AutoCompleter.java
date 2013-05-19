@@ -26,18 +26,18 @@
 package org.omegat.gui.editor.autocompleter;
 
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.KeyEvent;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.BorderFactory;
-import javax.swing.DefaultListModel;
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
-import javax.swing.ListModel;
 import javax.swing.text.BadLocationException;
 
 import org.omegat.tokenizer.ITokenizer;
@@ -55,9 +55,7 @@ import org.omegat.util.Token;
  * @author Zoltan Bartko <bartkozoltan@bartkozoltan.com>
  * @author Aaron Madlon-Kay
  */
-public class AutoCompleter {
-    ListModel listModel = new DefaultListModel();
-    
+public class AutoCompleter {    
     JList list = new JList(); 
     JPopupMenu popup = new JPopupMenu(); 
     EditorTextArea3 editor; 
@@ -65,6 +63,9 @@ public class AutoCompleter {
     boolean onMac = StaticUtils.onMacOSX();
     
     private boolean visible = false;
+    
+    private static AutoCompleterItem NO_SUGGESTIONS = new AutoCompleterItem(
+            OStrings.getString("AC_NO_SUGGESTIONS"), null);
     
     /**
      * insert the selected item from here on.
@@ -210,8 +211,8 @@ public class AutoCompleter {
      * Returns the currently selected value.
      * @return 
      */
-    private String getSelectedValue() {
-        return views.get(currentView).getTargetString((String)list.getSelectedValue());
+    private AutoCompleterItem getSelectedValue() {
+        return (AutoCompleterItem)list.getSelectedValue();
     }
     
     /** 
@@ -313,6 +314,7 @@ public class AutoCompleter {
     private boolean updateListData() {
         try {
             AutoCompleterView currentACView = views.get(currentView);
+            list.setCellRenderer(new CellRenderer(currentACView));
             int offset = editor.getCaretPosition();
             int translationStart = editor.getOmDocument().getTranslationStart();
             
@@ -336,10 +338,10 @@ public class AutoCompleter {
                 }
             }
             
-            List<String> entryList = currentACView.computeListData(wordChunk);
+            List<AutoCompleterItem> entryList = currentACView.computeListData(wordChunk);
             
             if (entryList.isEmpty()) {
-                entryList.add(OStrings.getString("AC_NO_SUGGESTIONS"));
+                entryList.add(NO_SUGGESTIONS);
             }
             list.setListData(entryList.toArray());
             if (!entryList.isEmpty())
@@ -356,9 +358,9 @@ public class AutoCompleter {
      * Replace the text in the editor with the accepted item.
      * @param selected 
      */
-    protected void acceptedListItem(String selected) { 
+    protected void acceptedListItem(AutoCompleterItem selected) { 
         try {
-            if (selected==null || selected.equals(OStrings.getString("AC_NO_SUGGESTIONS"))) 
+            if (selected == null || selected == NO_SUGGESTIONS) 
                 return; 
      
             int offset = editor.getCaretPosition();
@@ -367,7 +369,7 @@ public class AutoCompleter {
                 editor.setSelectionStart(wordChunkStart);
                 editor.setSelectionEnd(offset);
             }
-            StringBuilder builder = new StringBuilder(selected);
+            StringBuilder builder = new StringBuilder(selected.payload);
             if (Character.isUpperCase(editor.getText(offset,1).charAt(0))) {    
                 builder.setCharAt(0, Character.toUpperCase(builder.charAt(0)));
             }
@@ -463,6 +465,26 @@ public class AutoCompleter {
         } else {
             throw new InvalidParameterException("Cannot move the insertion point "
                     + "outside of the active translation area.");
+        }
+    }
+    
+    @SuppressWarnings("serial")
+    class CellRenderer extends DefaultListCellRenderer {
+        private AutoCompleterView view;
+        
+        public CellRenderer(AutoCompleterView view) {
+            this.view = view;
+        }
+        
+        @Override
+        public Component getListCellRendererComponent(JList list, Object value,
+                int index, boolean isSelected, boolean cellHasFocus) {
+            if (value == NO_SUGGESTIONS) {
+                setText(((AutoCompleterItem)value).payload);
+            } else {
+                setText(view.itemToString((AutoCompleterItem)value));
+            }
+            return this;
         }
     }
 }

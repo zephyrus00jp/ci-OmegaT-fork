@@ -3,7 +3,7 @@
           with fuzzy matching, translation memory, keyword search, 
           glossaries, and translation leveraging into updated projects.
 
- Copyright (C) 2013 Zoltan Bartko
+ Copyright (C) 2013 Zoltan Bartko, Aaron Madlon-Kay
                Home page: http://www.omegat.org/
                Support center: http://groups.yahoo.com/group/OmegaT/
 
@@ -27,57 +27,83 @@ package org.omegat.gui.editor.autotext;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import org.omegat.core.Core;
 import org.omegat.gui.editor.autocompleter.AutoCompleter;
+import org.omegat.gui.editor.autocompleter.AutoCompleterItem;
 import org.omegat.gui.editor.autocompleter.AutoCompleterView;
-import org.omegat.util.OConsts;
 import org.omegat.util.OStrings;
 import org.omegat.util.Preferences;
 
 /**
- *
  * @author bartkoz
+ * @author Aaron Madlon-Kay
  */
 public class AutotextAutoCompleterView extends AutoCompleterView {
 
     public AutotextAutoCompleterView(AutoCompleter completer) {
         super(OStrings.getString("AC_AUTOTEXT_VIEW"), completer);
-        setSeparator(OConsts.AC_AUTOTEXT_SEPARATOR);
-        setCommentSeparator(OConsts.AC_AUTOTEXT_COMMENT_SEPARATOR);
     }
             
     @Override
-    public List<String> computeListData(String wordChunk) {
-        List<String> result = new ArrayList<String>();
-        List<AutotextPair> entryList = new ArrayList<AutotextPair>();
+    public List<AutoCompleterItem> computeListData(String wordChunk) {
+        List<AutoCompleterItem> result = new ArrayList<AutoCompleterItem>();
         String candidate;
         for (AutotextPair s : Core.getAutoText().getList()) {
-            
             candidate = s.toString();
             if (candidate.toLowerCase().startsWith(wordChunk.toLowerCase())) {
-                entryList.add(s);
+                result.add(new AutoCompleterItem(s.target,
+                    new String[] { s.source, s.comment }));
             }
         }
         
-        AutotextACComparator acComparator = new AutotextACComparator(
-                Preferences.isPreference(Preferences.AC_AUTOTEXT_SORT_BY_LENGTH),
-                Preferences.isPreference(Preferences.AC_AUTOTEXT_SORT_ALPHABETICALLY),
-                Preferences.isPreference(Preferences.AC_AUTOTEXT_EXCLUDE_ABBREVS));
+        Collections.sort(result, new AutotextComparator());
         
-        Collections.sort(entryList, acComparator);
-        
-        for (AutotextPair pair:entryList) {
-            result.add(pair.toString());
-        }
         return result;
     }
 
     @Override
-    public String stripSource(String input, int separatorPosition) {
-        return input.substring(separatorPosition+getSeparator().length());
+    public String itemToString(AutoCompleterItem item) {
+        StringBuilder b = new StringBuilder();
+        
+        if (item.extras != null && item.extras[0] != null) {
+            b.append(item.extras[0]);
+            b.append(" → ");
+        }
+        if (item.payload != null) b.append(item.payload);
+        if (item.extras != null && item.extras[1] != null) {
+            b.append(" (");
+            b.append(item.extras[1]);
+            b.append(")");
+        }
+        return null;
     }
     
-    
-    
+    class AutotextComparator implements Comparator<AutoCompleterItem> {
+
+        private boolean byLength = Preferences.isPreference(Preferences.AC_AUTOTEXT_SORT_BY_LENGTH);
+        private boolean alphabetically = Preferences.isPreference(Preferences.AC_AUTOTEXT_SORT_ALPHABETICALLY);
+        private boolean excludeAbbreviations = Preferences.isPreference(Preferences.AC_AUTOTEXT_EXCLUDE_ABBREVS);
+        
+        @Override
+        public int compare(AutoCompleterItem o1, AutoCompleterItem o2) {
+            if (byLength) {
+                if (o1.payload.length() < o2.payload.length()) {
+                    return 1;
+                } else if (o1.payload.length() > o2.payload.length()) {
+                    return -1;
+                }
+            }
+            
+            if (alphabetically) {
+                if (excludeAbbreviations)
+                    return o1.payload.compareTo(o2.payload);
+                else
+                    return itemToString(o1).compareTo(itemToString(o2));
+            }
+            
+            return 0;
+        }
+    }
 }

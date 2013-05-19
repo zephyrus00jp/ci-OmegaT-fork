@@ -3,7 +3,7 @@
           with fuzzy matching, translation memory, keyword search, 
           glossaries, and translation leveraging into updated projects.
 
- Copyright (C) 2013 Zoltan Bartko
+ Copyright (C) 2013 Aaron Madlon-Kay
                Home page: http://www.omegat.org/
                Support center: http://groups.yahoo.com/group/OmegaT/
 
@@ -22,45 +22,28 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  **************************************************************************/
-package org.omegat.gui.glossary;
 
-import java.util.Comparator;
+package org.omegat.gui.editor.autocompleter;
 
 /**
- * A comparator for glossary entries
- * @author bartkoz
+ * A class to represent an item available for auto-completion.
+ * Upon confirming the selection, the item's payload will be
+ * inserted into the translation.
+ * <p>
+ * Additional information such as comments, source terms, etc.
+ * can be stored in <code>extras</code>. The {@link AutoCompleterView}
+ * that created the AutoCompleterItem should know how to use these
+ * values appropriately in its {@link AutoCompleterView#itemToString(AutoCompleterItem)}
+ * method.
+ * 
+ * @author Aaron Madlon-Kay
  */
-public class GlossaryACComparator implements Comparator<GlossaryACPair> {
-
-    private boolean byLength;
-    private boolean alphabetically;
-    private boolean bySource;
+public class AutoCompleterItem {
+    public final String payload;
+    public final String[] extras;
     
-    public GlossaryACComparator(boolean sortByLength, boolean sortAlphabetically, boolean sortBySource) {
-        byLength = sortByLength;
-        alphabetically = sortAlphabetically;
-        bySource = sortBySource;
+    public AutoCompleterItem(String payload, String[] extras) {
+        this.payload = payload;
+        this.extras = extras;
     }
-    
-    @Override
-    public int compare(GlossaryACPair o1, GlossaryACPair o2) {
-        if (bySource) {
-            int result = o1.source.compareTo(o2.source);
-            if (result != 0)
-                return result;
-        }
-        
-        if (byLength) {
-            if (o1.target.length() < o2.target.length()) {
-                return 1;
-            } else if (o1.target.length() > o2.target.length()) {
-                return -1;
-            }
-        }
-        if (alphabetically)
-            return o1.target.compareTo(o2.target);
-        
-        return 0;
-    }
-    
 }

@@ -27,10 +27,12 @@ package org.omegat.gui.glossary;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import org.omegat.core.Core;
 import org.omegat.gui.editor.autocompleter.AutoCompleter;
+import org.omegat.gui.editor.autocompleter.AutoCompleterItem;
 import org.omegat.gui.editor.autocompleter.AutoCompleterView;
 import org.omegat.util.OStrings;
 import org.omegat.util.Preferences;
@@ -48,61 +50,71 @@ public class GlossaryAutoCompleterView extends AutoCompleterView {
     }
 
     @Override
-    public List<String> computeListData(String wordChunk) {
-        List<GlossaryACPair> entryList = new ArrayList<GlossaryACPair>();
-        List<String> result = new ArrayList<String>();
-        setSeparator(Preferences.getPreference(Preferences.AC_GLOSSARY_SEPARATOR));
-        boolean targetFirst = Preferences.isPreference(Preferences.AC_GLOSSARY_SHOW_TARGET_BEFORE_SOURCE);
+    public List<AutoCompleterItem> computeListData(String wordChunk) {
+        List<AutoCompleterItem> result = new ArrayList<AutoCompleterItem>();
         
         for (GlossaryEntry entry : Core.getGlossary().getDisplayedEntries()) {
             for (String s : entry.getLocTerms(true)) {
                 if (s.toLowerCase().startsWith(wordChunk.toLowerCase())) {
-                    entryList.add(new GlossaryACPair(entry.getSrcText(),s));
+                    result.add(new AutoCompleterItem(s, new String[] { entry.getSrcText() }));
                 }
             }
         }
         
         if (!Core.getProject().getProjectProperties().getTargetLanguage().isSpaceDelimited()
-                && entryList.size() == 0) {
+                && result.size() == 0) {
             for (GlossaryEntry entry : Core.getGlossary().getDisplayedEntries()) {
                 for (String s : entry.getLocTerms(true)) {
-                    entryList.add(new GlossaryACPair(entry.getSrcText(),s));
+                    result.add(new AutoCompleterItem(s, new String[] { entry.getSrcText() }));
                 }
             }
             completer.adjustInsertionPoint(wordChunk.length());
         }
         
-        GlossaryACComparator acComparator = new GlossaryACComparator(
-                Preferences.isPreference(Preferences.AC_GLOSSARY_SORT_BY_LENGTH),
-                Preferences.isPreference(Preferences.AC_GLOSSARY_SORT_ALPHABETICALLY),
-                Preferences.isPreference(Preferences.AC_GLOSSARY_SORT_BY_SOURCE));
-        Collections.sort(entryList, acComparator);
-        
-        if (!Preferences.isPreference(Preferences.AC_GLOSSARY_SHOW_SOURCE)) {
-            for (GlossaryACPair pair:entryList) {
-                result.add(pair.target);
-            }
-        } else {
-            for (GlossaryACPair pair:entryList) {
-                if (targetFirst) {
-                    result.add(pair.target + getSeparator() + pair.source);
-                } else {
-                    result.add(pair.source + getSeparator() + pair.target);
-                }
-            }
-        }
+        Collections.sort(result, new GlossaryComparator());
         
         return result;
-    }   
-
+    }
+    
     @Override
-    public String stripSource(String input, int separatorPosition) {
-        if (!Preferences.isPreference(Preferences.AC_GLOSSARY_SHOW_TARGET_BEFORE_SOURCE)) {
-            return input.substring(separatorPosition+getSeparator().length());
+    public String itemToString(AutoCompleterItem item) {
+        if (Preferences.isPreference(Preferences.AC_GLOSSARY_SHOW_SOURCE) && item.extras != null) {
+            if (Preferences.isPreference(Preferences.AC_GLOSSARY_SHOW_TARGET_BEFORE_SOURCE)) {
+                return item.payload + " → " + item.extras[0];
+            } else {
+                return item.extras[0] + " → " + item.payload;
+            }
         } else {
-            return input.substring(0, separatorPosition);
+            return item.payload;
         }
     }
     
-    
+    class GlossaryComparator implements Comparator<AutoCompleterItem> {
+        
+        private boolean bySource = Preferences.isPreference(Preferences.AC_GLOSSARY_SORT_BY_SOURCE);
+        private boolean byLength = Preferences.isPreference(Preferences.AC_GLOSSARY_SORT_BY_LENGTH);
+        private boolean alphabetically = Preferences.isPreference(Preferences.AC_GLOSSARY_SORT_ALPHABETICALLY);
+        
+        @Override
+        public int compare(AutoCompleterItem o1, AutoCompleterItem o2) {
+            if (bySource) {
+                int result = o1.extras[0].compareTo(o2.extras[0]);
+                if (result != 0)
+                    return result;
+            }
+            
+            if (byLength) {
+                if (o1.payload.length() < o2.payload.length()) {
+                    return 1;
+                } else if (o1.payload.length() > o2.payload.length()) {
+                    return -1;
+                }
+            }
+            if (alphabetically)
+                return o1.payload.compareTo(o2.payload);
+            
+            return 0;
+        }
+        
+    }
 }

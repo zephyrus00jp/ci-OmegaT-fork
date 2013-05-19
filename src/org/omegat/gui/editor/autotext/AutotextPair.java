@@ -25,8 +25,6 @@
 
 package org.omegat.gui.editor.autotext;
 
-import org.omegat.util.OConsts;
-
 /**
  *
  * @author bartkoz
@@ -44,22 +42,5 @@ public class AutotextPair {
             this.target = target;
         if (!comment.isEmpty())
             this.comment = comment;
-    }
-    
-    @Override
-    public String toString() {
-        String result = "";     
-        if (source != null) {
-            result = source + OConsts.AC_AUTOTEXT_SEPARATOR;
-        }
-        if (target != null) {
-            result = result + target;
-        }
-        
-        if (comment != null) {
-            result = result + OConsts.AC_AUTOTEXT_COMMENT_SEPARATOR + comment;
-        }
-        
-        return result;
     }
 }

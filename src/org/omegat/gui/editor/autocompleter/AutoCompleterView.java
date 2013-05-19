@@ -29,8 +29,6 @@ import java.util.List;
 
 import org.omegat.core.Core;
 import org.omegat.tokenizer.ITokenizer;
-import org.omegat.util.OStrings;
-import org.omegat.util.Preferences;
 
 /**
  * A view of the auto-completer.
@@ -50,13 +48,6 @@ public abstract class AutoCompleterView {
     protected AutoCompleter completer;
     
     /**
-     * the separator string between source and target
-     */
-    private String separator;
-    
-    private String commentSeparator;
-    
-    /**
      * Creates a new auto-completer view.
      * @param name the name of this view
      * @param completer the completer it belongs to
@@ -71,7 +62,7 @@ public abstract class AutoCompleterView {
      * @param wordChunk the string to start with
      * @return a list of strings.
      */
-    public abstract List<String> computeListData(String wordChunk);
+    public abstract List<AutoCompleterItem> computeListData(String wordChunk);
 
     /**
      * @return the name
@@ -88,68 +79,11 @@ public abstract class AutoCompleterView {
     public ITokenizer getTokenizer() {
         return Core.getProject().getTargetTokenizer();
     }
-
-    /**
-     * @return the separator
-     */
-    public String getSeparator() {
-        return separator;
-    }
-
-    /**
-     * @param separator the separator to set
-     */
-    public void setSeparator(String separator) {
-        if (separator.trim().equals("")) {
-            this.separator = null;
-        } else {
-            this.separator = separator;
-        }
-    }
     
     /**
-     * @return the separator
+     * Each view should determine how to print a view item.
+     * @param item The item to print
+     * @return A string representation of the view item
      */
-    public String getCommentSeparator() {
-        return commentSeparator;
-    }
-
-    /**
-     * @param separator the separator to set
-     */
-    public void setCommentSeparator(String commentSeparator) {
-        if (commentSeparator.trim().equals("")) {
-            this.commentSeparator = null;
-        } else {
-            this.commentSeparator = commentSeparator;
-        }
-    }
-    
-    public String stripComment(String input) {
-        if (getCommentSeparator() == null)
-            return input;
-        
-        int commentSeparatorPosition = input.indexOf(getCommentSeparator());
-        if (commentSeparatorPosition == -1)
-            return input;
-        
-        return input.substring(0, commentSeparatorPosition);
-    }
-    
-    public String stripSource(String input, int separatorPosition) {
-        return input.substring(0, separatorPosition);
-    }
-    
-    public String getTargetString(String input) {
-        String result = stripComment(input);
-        
-        if (getSeparator() == null)
-            return result;
-        
-        int separatorPosition = result.indexOf(getSeparator());
-        if (separatorPosition == -1)
-            return result;
-        
-        return stripSource(result, separatorPosition);
-    }
+    public abstract String itemToString(AutoCompleterItem item);
 }
