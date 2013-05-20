@@ -390,6 +390,16 @@ public class AutoCompleter {
         return currentView + 1;
     }
     
+    private int prevViewNumber() {
+        if (views.size() == 1)
+            return currentView;
+        
+        if (currentView == 0) {
+            return views.size() - 1;
+        }
+        return currentView - 1;
+    }
+    
     private void updateViewLabel() {
         StringBuilder sb = new StringBuilder(OStrings.getString("AC_LABEL_START"));
         sb.append(StaticUtils.format(OStrings.getString("AC_THIS_VIEW"),
@@ -409,7 +419,7 @@ public class AutoCompleter {
             if (views.size() > 2) {
             sb.append(StaticUtils.format(OStrings.getString("AC_PREV_VIEW"),
                     prevKeyString,
-                    views.get(nextViewNumber()).getName()));
+                    views.get(prevViewNumber()).getName()));
             }
         }
         sb.append(OStrings.getString("AC_LABEL_END"));
