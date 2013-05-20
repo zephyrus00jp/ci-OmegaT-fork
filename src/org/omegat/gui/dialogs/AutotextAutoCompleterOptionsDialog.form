@@ -134,7 +134,7 @@
                               </Group>
                               <Component id="sortByLengthCheckBox" alignment="0" min="-2" max="-2" attributes="0"/>
                           </Group>
-                          <EmptySpace min="0" pref="124" max="32767" attributes="0"/>
+                          <EmptySpace min="0" pref="181" max="32767" attributes="0"/>
                       </Group>
                   </Group>
               </Group>
@@ -175,7 +175,7 @@
         <Component class="javax.swing.JCheckBox" name="sortFullTextCheckBox">
           <Properties>
             <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-              <ResourceString bundle="org/omegat/Bundle.properties" key="AC_AUTOTEXT_MATCH_FULL_TEXT" replaceFormat="OStrings.getString(&quot;{key}&quot;)"/>
+              <ResourceString bundle="org/omegat/Bundle.properties" key="AC_AUTOTEXT_SORT_FULL_TEXT" replaceFormat="OStrings.getString(&quot;{key}&quot;)"/>
             </Property>
           </Properties>
           <Events>

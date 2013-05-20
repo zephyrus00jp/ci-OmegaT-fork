@@ -145,7 +145,7 @@ public class AutotextAutoCompleterOptionsDialog extends javax.swing.JDialog {
             }
         });
 
-        sortFullTextCheckBox.setText(OStrings.getString("AC_AUTOTEXT_MATCH_FULL_TEXT")); // NOI18N
+        sortFullTextCheckBox.setText(OStrings.getString("AC_AUTOTEXT_SORT_FULL_TEXT")); // NOI18N
         sortFullTextCheckBox.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 sortFullTextCheckBoxActionPerformed(evt);
@@ -168,7 +168,7 @@ public class AutotextAutoCompleterOptionsDialog extends javax.swing.JDialog {
                                 .addGap(21, 21, 21)
                                 .addComponent(sortFullTextCheckBox))
                             .addComponent(sortByLengthCheckBox))
-                        .addGap(0, 124, Short.MAX_VALUE))))
+                        .addGap(0, 181, Short.MAX_VALUE))))
         );
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)

@@ -132,14 +132,15 @@ public class GlossaryAutoCompleterOptionsDialog extends javax.swing.JDialog {
         targetFirstRadioButton.setText(OStrings.getString("AC_OPTIONS_TARGET_FIRST")); // NOI18N
         targetFirstRadioButton.setToolTipText(OStrings.getString("AC_OPTIONS_TARGET_FIRST_TOOLTIP")); // NOI18N
 
-        sortBySourceCheckBox.setText("Sort by source term alphabetically");
+        java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("org/omegat/Bundle"); // NOI18N
+        sortBySourceCheckBox.setText(bundle.getString("AC_OPTIONS_SORT_SOURCE_ALPHABETICALLY")); // NOI18N
 
         jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder(OStrings.getString("AC_GLOSSARY_TARGET_PANEL"))); // NOI18N
 
         longerFirstCheckBox.setText(OStrings.getString("AC_OPTIONS_SORT_BY_LENGTH")); // NOI18N
         longerFirstCheckBox.setToolTipText(OStrings.getString("AC_OPTIONS_SORT_BY_LENGTH_TOOLTIP")); // NOI18N
 
-        sortEntriesCheckBox.setText(OStrings.getString("AC_OPTIONS_SORT_ALPHABETICALLY")); // NOI18N
+        sortEntriesCheckBox.setText(OStrings.getString("AC_OPTIONS_SORT_TARGET_ALPHABETICALLY")); // NOI18N
         sortEntriesCheckBox.setToolTipText(OStrings.getString("AC_OPTIONS_SORT_ALPHABETICALLY_TOOLTIP")); // NOI18N
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
