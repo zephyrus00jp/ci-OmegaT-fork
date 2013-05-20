@@ -484,6 +484,13 @@ public class AutoCompleter {
             } else {
                 setText(view.itemToString((AutoCompleterItem)value));
             }
+            if (isSelected) {
+                setBackground(list.getSelectionBackground());
+                setForeground(list.getSelectionForeground());
+            } else {
+                setBackground(list.getBackground());
+                setForeground(list.getForeground());
+            }
             return this;
         }
     }
