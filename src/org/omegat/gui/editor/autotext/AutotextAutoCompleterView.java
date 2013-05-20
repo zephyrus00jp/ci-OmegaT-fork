@@ -48,11 +48,12 @@ public class AutotextAutoCompleterView extends AutoCompleterView {
             
     @Override
     public List<AutoCompleterItem> computeListData(String wordChunk) {
+        boolean matchFullText = Preferences.isPreference(Preferences.AC_AUTOTEXT_SORT_FULL_TEXT);
+        
         List<AutoCompleterItem> result = new ArrayList<AutoCompleterItem>();
-        String candidate;
         for (AutotextPair s : Core.getAutoText().getList()) {
-            candidate = s.toString();
-            if (candidate.toLowerCase().startsWith(wordChunk.toLowerCase())) {
+            String toCompare = matchFullText ? s.target : s.source;
+            if (toCompare.toLowerCase().startsWith(wordChunk.toLowerCase())) {
                 result.add(new AutoCompleterItem(s.target,
                     new String[] { s.source, s.comment }));
             }
@@ -77,14 +78,14 @@ public class AutotextAutoCompleterView extends AutoCompleterView {
             b.append(item.extras[1]);
             b.append(")");
         }
-        return null;
+        return b.toString();
     }
     
     class AutotextComparator implements Comparator<AutoCompleterItem> {
 
         private boolean byLength = Preferences.isPreference(Preferences.AC_AUTOTEXT_SORT_BY_LENGTH);
         private boolean alphabetically = Preferences.isPreference(Preferences.AC_AUTOTEXT_SORT_ALPHABETICALLY);
-        private boolean excludeAbbreviations = Preferences.isPreference(Preferences.AC_AUTOTEXT_EXCLUDE_ABBREVS);
+        private boolean sortFullText = Preferences.isPreference(Preferences.AC_AUTOTEXT_SORT_FULL_TEXT);
         
         @Override
         public int compare(AutoCompleterItem o1, AutoCompleterItem o2) {
@@ -97,7 +98,7 @@ public class AutotextAutoCompleterView extends AutoCompleterView {
             }
             
             if (alphabetically) {
-                if (excludeAbbreviations)
+                if (sortFullText)
                     return o1.payload.compareTo(o2.payload);
                 else
                     return itemToString(o1).compareTo(itemToString(o2));

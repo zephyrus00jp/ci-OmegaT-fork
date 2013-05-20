@@ -305,19 +305,15 @@ public class Preferences {
     /** glossary auto-completion */
     public static final String AC_GLOSSARY_SHOW_SOURCE = "ac_glossary_show_source";
     public static final String AC_GLOSSARY_SHOW_TARGET_BEFORE_SOURCE = "ac_glossary_show_target_before_source";
-    public static final String AC_GLOSSARY_SEPARATOR = "ac_glossary_separator";
-    public static final String AC_GLOSSARY_SEPARATOR_DEFAULT = " =:= ";
     public static final String AC_GLOSSARY_SORT_BY_SOURCE = "ac_glossary_sort_by_source";
     public static final String AC_GLOSSARY_SORT_BY_LENGTH = "ac_glossary_sort_by_length";
     public static final String AC_GLOSSARY_SORT_ALPHABETICALLY = "ac_glossary_sort_alphabetically";
     
     /** autotext auto-completion */
     public static final String AC_AUTOTEXT_FILE_NAME = "omegat.autotext";
-    public static final String AC_AUTOTEXT_SEPARATOR = "ac_autotext_separator";
-    public static final String AC_AUTOTEXT_SEPARATOR_DEFAULT = " =:= ";
     public static final String AC_AUTOTEXT_SORT_BY_LENGTH = "ac_autotext_sort_by_length";
     public static final String AC_AUTOTEXT_SORT_ALPHABETICALLY = "ac_autotext_sort_alphabetically";
-    public static final String AC_AUTOTEXT_EXCLUDE_ABBREVS = "ac_autotext_exclude_abbrevs";
+    public static final String AC_AUTOTEXT_SORT_FULL_TEXT = "ac_autotext_sort_full_text";
     
     /** Private constructor, because this file is singleton */
     static {

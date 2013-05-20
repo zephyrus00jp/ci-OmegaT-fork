@@ -72,9 +72,6 @@ public class GlossaryAutoCompleterOptionsDialog extends javax.swing.JDialog {
         
         // initializing options
         displaySourceCheckBox.setSelected(Preferences.isPreference(Preferences.AC_GLOSSARY_SHOW_SOURCE));
-        separatorTextField.setText(Preferences.getPreferenceDefault(
-                        Preferences.AC_GLOSSARY_SEPARATOR,
-                        Preferences.AC_GLOSSARY_SEPARATOR_DEFAULT));
         targetFirstRadioButton.setSelected(Preferences.isPreference(Preferences.AC_GLOSSARY_SHOW_TARGET_BEFORE_SOURCE));
         sortBySourceCheckBox.setSelected(Preferences.isPreference(Preferences.AC_GLOSSARY_SORT_BY_SOURCE));
         activateSourceItems(displaySourceCheckBox.isSelected());
@@ -93,8 +90,6 @@ public class GlossaryAutoCompleterOptionsDialog extends javax.swing.JDialog {
 
         sourceButtonGroup = new javax.swing.ButtonGroup();
         displaySourceCheckBox = new javax.swing.JCheckBox();
-        separatorLabel = new javax.swing.JLabel();
-        separatorTextField = new javax.swing.JTextField();
         okButton = new javax.swing.JButton();
         cancelButton = new javax.swing.JButton();
         sourceFirstRadioButton = new javax.swing.JRadioButton();
@@ -114,9 +109,6 @@ public class GlossaryAutoCompleterOptionsDialog extends javax.swing.JDialog {
                 displaySourceCheckBoxActionPerformed(evt);
             }
         });
-
-        separatorLabel.setText(OStrings.getString("AC_OPTIONS_SEPARATOR")); // NOI18N
-        separatorLabel.setToolTipText(OStrings.getString("AC_OPTIONS_SEPARATOR_TOOLTIP")); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(okButton, OStrings.getString("BUTTON_OK")); // NOI18N
         okButton.addActionListener(new java.awt.event.ActionListener() {
@@ -179,28 +171,23 @@ public class GlossaryAutoCompleterOptionsDialog extends javax.swing.JDialog {
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(displaySourceCheckBox)
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(21, 21, 21)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(separatorLabel)
-                                    .addComponent(sortBySourceCheckBox))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(separatorTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 144, Short.MAX_VALUE))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(sourceFirstRadioButton)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(targetFirstRadioButton)
-                                .addGap(0, 0, Short.MAX_VALUE))))
-                    .addGroup(layout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
                         .addComponent(okButton)
                         .addGap(4, 4, 4)
                         .addComponent(cancelButton))
-                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(displaySourceCheckBox)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(21, 21, 21)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(sortBySourceCheckBox)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(sourceFirstRadioButton)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                        .addComponent(targetFirstRadioButton)))))
+                        .addGap(0, 73, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -208,11 +195,7 @@ public class GlossaryAutoCompleterOptionsDialog extends javax.swing.JDialog {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(displaySourceCheckBox)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(separatorLabel)
-                    .addComponent(separatorTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(sourceFirstRadioButton)
                     .addComponent(targetFirstRadioButton))
@@ -228,6 +211,7 @@ public class GlossaryAutoCompleterOptionsDialog extends javax.swing.JDialog {
         );
 
         pack();
+        setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
     private void doClose(int retStatus) {
@@ -241,8 +225,6 @@ public class GlossaryAutoCompleterOptionsDialog extends javax.swing.JDialog {
     }//GEN-LAST:event_cancelButtonActionPerformed
 
     private void activateSourceItems(boolean activate) {
-        separatorLabel.setEnabled(activate);
-        separatorTextField.setEnabled(activate);
         sortBySourceCheckBox.setEnabled(activate);
         sourceFirstRadioButton.setEnabled(activate);
         targetFirstRadioButton.setEnabled(activate);
@@ -255,7 +237,6 @@ public class GlossaryAutoCompleterOptionsDialog extends javax.swing.JDialog {
     private void okButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_okButtonActionPerformed
         Preferences.setPreference(Preferences.AC_GLOSSARY_SHOW_SOURCE, displaySourceCheckBox.isSelected());
         if (displaySourceCheckBox.isSelected()) {
-            Preferences.setPreference(Preferences.AC_GLOSSARY_SEPARATOR, separatorTextField.getText());
             Preferences.setPreference(Preferences.AC_GLOSSARY_SHOW_TARGET_BEFORE_SOURCE, targetFirstRadioButton.isSelected());
             Preferences.setPreference(Preferences.AC_GLOSSARY_SORT_BY_SOURCE, sortBySourceCheckBox.isSelected());
         }
@@ -270,8 +251,6 @@ public class GlossaryAutoCompleterOptionsDialog extends javax.swing.JDialog {
     private javax.swing.JPanel jPanel1;
     private javax.swing.JCheckBox longerFirstCheckBox;
     private javax.swing.JButton okButton;
-    private javax.swing.JLabel separatorLabel;
-    private javax.swing.JTextField separatorTextField;
     private javax.swing.JCheckBox sortBySourceCheckBox;
     private javax.swing.JCheckBox sortEntriesCheckBox;
     private javax.swing.ButtonGroup sourceButtonGroup;

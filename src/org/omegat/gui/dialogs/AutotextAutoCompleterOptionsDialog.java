@@ -69,8 +69,8 @@ public class AutotextAutoCompleterOptionsDialog extends javax.swing.JDialog {
         
         sortByLengthCheckBox.setSelected(Preferences.isPreference(Preferences.AC_AUTOTEXT_SORT_BY_LENGTH));
         sortAlphabeticallyCheckBox.setSelected(Preferences.isPreference(Preferences.AC_AUTOTEXT_SORT_ALPHABETICALLY));
-        excludeAbbreviationsCheckBox.setSelected(Preferences.isPreference(Preferences.AC_AUTOTEXT_EXCLUDE_ABBREVS));
-        excludeAbbreviationsCheckBox.setEnabled(sortAlphabeticallyCheckBox.isSelected());
+        sortFullTextCheckBox.setSelected(Preferences.isPreference(Preferences.AC_AUTOTEXT_SORT_FULL_TEXT));
+        sortFullTextCheckBox.setEnabled(sortAlphabeticallyCheckBox.isSelected());
         
         fc.setDialogType(JFileChooser.FILES_ONLY);
         FileFilter filter = new FileNameExtensionFilter(OStrings.getString("AC_AUTOTEXT_FILE"), "autotext");
@@ -97,7 +97,7 @@ public class AutotextAutoCompleterOptionsDialog extends javax.swing.JDialog {
         jPanel3 = new javax.swing.JPanel();
         sortByLengthCheckBox = new javax.swing.JCheckBox();
         sortAlphabeticallyCheckBox = new javax.swing.JCheckBox();
-        excludeAbbreviationsCheckBox = new javax.swing.JCheckBox();
+        sortFullTextCheckBox = new javax.swing.JCheckBox();
         jPanel2 = new javax.swing.JPanel();
         loadButton = new javax.swing.JButton();
         saveButton = new javax.swing.JButton();
@@ -145,7 +145,12 @@ public class AutotextAutoCompleterOptionsDialog extends javax.swing.JDialog {
             }
         });
 
-        excludeAbbreviationsCheckBox.setText(OStrings.getString("AC_AUTOTEXT_EXCLUDE_ABBREVS")); // NOI18N
+        sortFullTextCheckBox.setText(OStrings.getString("AC_AUTOTEXT_MATCH_FULL_TEXT")); // NOI18N
+        sortFullTextCheckBox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                sortFullTextCheckBoxActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
@@ -161,9 +166,9 @@ public class AutotextAutoCompleterOptionsDialog extends javax.swing.JDialog {
                         .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(jPanel3Layout.createSequentialGroup()
                                 .addGap(21, 21, 21)
-                                .addComponent(excludeAbbreviationsCheckBox))
+                                .addComponent(sortFullTextCheckBox))
                             .addComponent(sortByLengthCheckBox))
-                        .addGap(0, 16, Short.MAX_VALUE))))
+                        .addGap(0, 124, Short.MAX_VALUE))))
         );
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -173,7 +178,7 @@ public class AutotextAutoCompleterOptionsDialog extends javax.swing.JDialog {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(sortAlphabeticallyCheckBox)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(excludeAbbreviationsCheckBox)
+                .addComponent(sortFullTextCheckBox)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -201,10 +206,13 @@ public class AutotextAutoCompleterOptionsDialog extends javax.swing.JDialog {
                 {null, null, null}
             },
             new String [] {
-                "Abbreviation", "Text", "Comment"
+                "Shortcut", "Full text", "Comment"
             }
         ));
         jScrollPane2.setViewportView(entryTable);
+        entryTable.getColumnModel().getColumn(0).setHeaderValue(OStrings.getString("AC_AUTOTEXT_ABBREVIATION")); // NOI18N
+        entryTable.getColumnModel().getColumn(1).setHeaderValue(OStrings.getString("AC_AUTOTEXT_TEXT")); // NOI18N
+        entryTable.getColumnModel().getColumn(2).setHeaderValue(OStrings.getString("AC_AUTOTEXT_COMMENT")); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(addNewRowButton, OStrings.getString("BUTTON_ADD_NODOTS")); // NOI18N
         addNewRowButton.addActionListener(new java.awt.event.ActionListener() {
@@ -285,6 +293,7 @@ public class AutotextAutoCompleterOptionsDialog extends javax.swing.JDialog {
         );
 
         pack();
+        setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
     private void loadButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loadButtonActionPerformed
@@ -333,12 +342,12 @@ public class AutotextAutoCompleterOptionsDialog extends javax.swing.JDialog {
             
         Preferences.setPreference(Preferences.AC_AUTOTEXT_SORT_BY_LENGTH, sortByLengthCheckBox.isSelected());
         Preferences.setPreference(Preferences.AC_AUTOTEXT_SORT_ALPHABETICALLY, sortAlphabeticallyCheckBox.isSelected());
-        Preferences.setPreference(Preferences.AC_AUTOTEXT_EXCLUDE_ABBREVS, excludeAbbreviationsCheckBox.isSelected());
+        Preferences.setPreference(Preferences.AC_AUTOTEXT_SORT_FULL_TEXT, sortFullTextCheckBox.isSelected());
         doClose(RET_OK);   
     }//GEN-LAST:event_okButtonActionPerformed
 
     private void sortAlphabeticallyCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sortAlphabeticallyCheckBoxActionPerformed
-        excludeAbbreviationsCheckBox.setEnabled(sortAlphabeticallyCheckBox.isSelected());
+        sortFullTextCheckBox.setEnabled(sortAlphabeticallyCheckBox.isSelected());
     }//GEN-LAST:event_sortAlphabeticallyCheckBoxActionPerformed
 
     private void addNewRowButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addNewRowButtonActionPerformed
@@ -351,6 +360,10 @@ public class AutotextAutoCompleterOptionsDialog extends javax.swing.JDialog {
             model.removeRow(entryTable.getSelectedRow());
     }//GEN-LAST:event_removeEntryButtonActionPerformed
 
+    private void sortFullTextCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sortFullTextCheckBoxActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_sortFullTextCheckBoxActionPerformed
+
     private void doClose(int retStatus) {
         returnStatus = retStatus;
         setVisible(false);
@@ -361,7 +374,6 @@ public class AutotextAutoCompleterOptionsDialog extends javax.swing.JDialog {
     private javax.swing.JButton addNewRowButton;
     private javax.swing.JButton cancelButton;
     private javax.swing.JTable entryTable;
-    private javax.swing.JCheckBox excludeAbbreviationsCheckBox;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
@@ -372,5 +384,6 @@ public class AutotextAutoCompleterOptionsDialog extends javax.swing.JDialog {
     private javax.swing.JButton saveButton;
     private javax.swing.JCheckBox sortAlphabeticallyCheckBox;
     private javax.swing.JCheckBox sortByLengthCheckBox;
+    private javax.swing.JCheckBox sortFullTextCheckBox;
     // End of variables declaration//GEN-END:variables
 }
