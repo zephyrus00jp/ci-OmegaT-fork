@@ -67,6 +67,9 @@ public class Autotext {
         
         String parts[] = thisLine.split("\t");
 
+        if (parts.length == 2) {
+            list.add(new AutotextPair(parts[0], parts[1], ""));
+        }
         if (parts.length == 3)
             list.add(new AutotextPair(parts[0], parts[1], parts[2]));
     }

@@ -86,8 +86,8 @@ public class AutoCompleter {
     
     public AutoCompleter(EditorTextArea3 editor) { 
         // add any views here
-        views.add(new GlossaryAutoCompleterView(this));
-        views.add(new AutotextAutoCompleterView(this));
+        //views.add(new GlossaryAutoCompleterView(this));
+        //views.add(new AutotextAutoCompleterView(this));
         
         this.editor = editor; 
         
@@ -281,7 +281,7 @@ public class AutoCompleter {
         if (!isVisible())
             return;
         
-        popup.setVisible(false); 
+        //popup.setVisible(false); 
         
         if (editor.isEnabled() && updateListData() && list.getModel().getSize()!=0) { 
             int size = list.getModel().getSize(); 

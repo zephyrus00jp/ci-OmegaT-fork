@@ -57,10 +57,18 @@ public class AutotextTableModel extends AbstractTableModel {
      */
     public void store(Autotext autotext) {
         List<AutotextPair> list = autotext.getList();
+        String source;
+        String target;
+        String comment;
         list.clear();
         for (AutotextPair pair:data) {
-            if (pair.target != null || !pair.target.isEmpty())
-                list.add(new AutotextPair(pair.source, pair.target, pair.comment));
+            if (pair.target != null || !pair.target.isEmpty()) {
+                source = pair.source == null ? "" : pair.source;
+                comment = pair.comment == null ? "" : pair.comment;
+                list.add(new AutotextPair(source, pair.target, comment));
+            }
+                
+                
         }
     }
     

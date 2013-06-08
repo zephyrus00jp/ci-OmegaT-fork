@@ -31,16 +31,16 @@ package org.omegat.gui.editor.autotext;
  */
 public class AutotextPair {
 
-    public String source = null;
-    public String target = null;
-    public String comment = null;
+    public String source = "";
+    public String target = "";
+    public String comment = "";
 
     public AutotextPair(String source, String target, String comment) {
-        if (!source.isEmpty())
+        if (source != null && !source.isEmpty())
             this.source = source;
-        if (!target.isEmpty())
+        if (target != null && !target.isEmpty())
             this.target = target;
-        if (!comment.isEmpty())
+        if (comment != null && !comment.isEmpty())
             this.comment = comment;
     }
 }

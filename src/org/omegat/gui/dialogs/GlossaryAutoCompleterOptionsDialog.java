@@ -77,6 +77,7 @@ public class GlossaryAutoCompleterOptionsDialog extends javax.swing.JDialog {
         activateSourceItems(displaySourceCheckBox.isSelected());
         longerFirstCheckBox.setSelected(Preferences.isPreference(Preferences.AC_GLOSSARY_SORT_BY_LENGTH));
         sortEntriesCheckBox.setSelected(Preferences.isPreference(Preferences.AC_GLOSSARY_SORT_ALPHABETICALLY));
+        followCapitalizationCheckBox.setSelected(Preferences.isPreference(Preferences.AC_GLOSSARY_CAPITALIZE));
     }
 
     /**
@@ -98,6 +99,7 @@ public class GlossaryAutoCompleterOptionsDialog extends javax.swing.JDialog {
         jPanel1 = new javax.swing.JPanel();
         longerFirstCheckBox = new javax.swing.JCheckBox();
         sortEntriesCheckBox = new javax.swing.JCheckBox();
+        followCapitalizationCheckBox = new javax.swing.JCheckBox();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle(OStrings.getString("AC_OPTIONS_GLOSSARY_FRAME")); // NOI18N
@@ -164,6 +166,8 @@ public class GlossaryAutoCompleterOptionsDialog extends javax.swing.JDialog {
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
+        followCapitalizationCheckBox.setText(OStrings.getString("AC_GLOSSARY_CAPITALIZE")); // NOI18N
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -187,8 +191,9 @@ public class GlossaryAutoCompleterOptionsDialog extends javax.swing.JDialog {
                                     .addGroup(layout.createSequentialGroup()
                                         .addComponent(sourceFirstRadioButton)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                        .addComponent(targetFirstRadioButton)))))
-                        .addGap(0, 73, Short.MAX_VALUE)))
+                                        .addComponent(targetFirstRadioButton))))
+                            .addComponent(followCapitalizationCheckBox))
+                        .addGap(0, 78, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -204,6 +209,8 @@ public class GlossaryAutoCompleterOptionsDialog extends javax.swing.JDialog {
                 .addComponent(sortBySourceCheckBox)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(followCapitalizationCheckBox)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(okButton)
@@ -243,12 +250,14 @@ public class GlossaryAutoCompleterOptionsDialog extends javax.swing.JDialog {
         }
         Preferences.setPreference(Preferences.AC_GLOSSARY_SORT_BY_LENGTH, longerFirstCheckBox.isSelected());
         Preferences.setPreference(Preferences.AC_GLOSSARY_SORT_ALPHABETICALLY, sortEntriesCheckBox.isSelected());
+        Preferences.setPreference(Preferences.AC_GLOSSARY_CAPITALIZE, followCapitalizationCheckBox.isSelected());
         doClose(RET_OK);
     }//GEN-LAST:event_okButtonActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton cancelButton;
     private javax.swing.JCheckBox displaySourceCheckBox;
+    private javax.swing.JCheckBox followCapitalizationCheckBox;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JCheckBox longerFirstCheckBox;
     private javax.swing.JButton okButton;

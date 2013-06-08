@@ -365,6 +365,7 @@ public class MainWindowMenu implements ActionListener, MenuListener, IMainMenu {
         // add any autocomplete view configuration menu items below
         optionsAutoCompleteMenu.add(optionsAutoCompleteGlossaryMenuItem = createMenuItem("MW_OPTIONSMENU_AUTOCOMPLETE_GLOSSARY"));
         optionsAutoCompleteMenu.add(optionsAutoCompleteAutoTextMenuItem = createMenuItem("MW_OPTIONSMENU_AUTOCOMPLETE_AUTOTEXT"));
+        optionsAutoCompleteMenu.add(optionsAutoCompleteCharTableMenuItem = createMenuItem("MW_OPTIONSMENU_AUTOCOMPLETE_CHARTABLE"));
         
         optionsMenu.add(new JSeparator());
         optionsMenu.add(optionsFontSelectionMenuItem = createMenuItem("TF_MENU_DISPLAY_FONT"));
@@ -661,6 +662,7 @@ public class MainWindowMenu implements ActionListener, MenuListener, IMainMenu {
     JMenu optionsAutoCompleteMenu;
     JMenuItem optionsAutoCompleteGlossaryMenuItem;
     JMenuItem optionsAutoCompleteAutoTextMenuItem;
+    JMenuItem optionsAutoCompleteCharTableMenuItem;
     JMenuItem optionsWorkflowMenuItem;
     JMenuItem optionsTagValidationMenuItem;
     JMenuItem optionsTeamMenuItem;

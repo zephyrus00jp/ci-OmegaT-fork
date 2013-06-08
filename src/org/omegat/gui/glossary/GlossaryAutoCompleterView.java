@@ -31,9 +31,9 @@ import java.util.Comparator;
 import java.util.List;
 
 import org.omegat.core.Core;
-import org.omegat.gui.editor.autocompleter.AutoCompleter;
 import org.omegat.gui.editor.autocompleter.AutoCompleterItem;
-import org.omegat.gui.editor.autocompleter.AutoCompleterView;
+import org.omegat.gui.editor.autocompleter.AutoCompleterListView;
+import org.omegat.gui.editor.autocompleter.NewAutoCompleter;
 import org.omegat.util.OStrings;
 import org.omegat.util.Preferences;
 
@@ -43,19 +43,26 @@ import org.omegat.util.Preferences;
  * @author Zoltan Bartko <bartkozoltan@bartkozoltan.com>
  * @author Aaron Madlon-Kay
  */
-public class GlossaryAutoCompleterView extends AutoCompleterView {
+public class GlossaryAutoCompleterView extends AutoCompleterListView {
 
-    public GlossaryAutoCompleterView(AutoCompleter completer) {
+    public GlossaryAutoCompleterView(NewAutoCompleter completer) {
         super(OStrings.getString("AC_GLOSSARY_VIEW"), completer);
     }
 
     @Override
     public List<AutoCompleterItem> computeListData(String wordChunk) {
         List<AutoCompleterItem> result = new ArrayList<AutoCompleterItem>();
+        boolean capitalize = (wordChunk.length() > 0) ?
+                (Preferences.isPreference(Preferences.AC_GLOSSARY_CAPITALIZE))
+                    && Character.isUpperCase(wordChunk.charAt(0)) 
+                : false;
         
         for (GlossaryEntry entry : Core.getGlossary().getDisplayedEntries()) {
             for (String s : entry.getLocTerms(true)) {
                 if (s.toLowerCase().startsWith(wordChunk.toLowerCase())) {
+                   if (capitalize) {
+                        s = s.substring(0,1).toUpperCase() + s.substring(1);
+                    }
                     result.add(new AutoCompleterItem(s, new String[] { entry.getSrcText() }));
                 }
             }
@@ -80,9 +87,9 @@ public class GlossaryAutoCompleterView extends AutoCompleterView {
     public String itemToString(AutoCompleterItem item) {
         if (Preferences.isPreference(Preferences.AC_GLOSSARY_SHOW_SOURCE) && item.extras != null) {
             if (Preferences.isPreference(Preferences.AC_GLOSSARY_SHOW_TARGET_BEFORE_SOURCE)) {
-                return item.payload + " → " + item.extras[0];
+                return item.payload + " \u2190 " + item.extras[0];
             } else {
-                return item.extras[0] + " → " + item.payload;
+                return item.extras[0] + " \u2192 " + item.payload;
             }
         } else {
             return item.payload;

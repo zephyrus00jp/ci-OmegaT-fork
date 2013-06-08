@@ -30,9 +30,9 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import org.omegat.core.Core;
-import org.omegat.gui.editor.autocompleter.AutoCompleter;
 import org.omegat.gui.editor.autocompleter.AutoCompleterItem;
-import org.omegat.gui.editor.autocompleter.AutoCompleterView;
+import org.omegat.gui.editor.autocompleter.AutoCompleterListView;
+import org.omegat.gui.editor.autocompleter.NewAutoCompleter;
 import org.omegat.util.OStrings;
 import org.omegat.util.Preferences;
 
@@ -40,9 +40,9 @@ import org.omegat.util.Preferences;
  * @author bartkoz
  * @author Aaron Madlon-Kay
  */
-public class AutotextAutoCompleterView extends AutoCompleterView {
+public class AutotextAutoCompleterView extends AutoCompleterListView {
 
-    public AutotextAutoCompleterView(AutoCompleter completer) {
+    public AutotextAutoCompleterView(NewAutoCompleter completer) {
         super(OStrings.getString("AC_AUTOTEXT_VIEW"), completer);
     }
             
@@ -68,12 +68,12 @@ public class AutotextAutoCompleterView extends AutoCompleterView {
     public String itemToString(AutoCompleterItem item) {
         StringBuilder b = new StringBuilder();
         
-        if (item.extras != null && item.extras[0] != null) {
+        if (item.extras != null && item.extras[0] != null && !item.extras[0].isEmpty()) {
             b.append(item.extras[0]);
-            b.append(" → ");
+            b.append(" \u2192 ");
         }
         if (item.payload != null) b.append(item.payload);
-        if (item.extras != null && item.extras[1] != null) {
+        if (item.extras != null && item.extras[1] != null && !item.extras[1].isEmpty()) {
             b.append(" (");
             b.append(item.extras[1]);
             b.append(")");
