@@ -36,12 +36,10 @@ import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
-import javax.swing.text.BadLocationException;
 import org.omegat.gui.editor.EditorTextArea3;
 import org.omegat.gui.editor.autotext.AutotextAutoCompleterView;
 import org.omegat.gui.editor.chartable.CharTableAutoCompleterView;
 import org.omegat.gui.glossary.GlossaryAutoCompleterView;
-import org.omegat.util.Log;
 import org.omegat.util.OStrings;
 import org.omegat.util.StaticUtils;
 

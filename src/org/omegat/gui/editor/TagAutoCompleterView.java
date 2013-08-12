@@ -32,6 +32,7 @@ import org.omegat.core.Core;
 import org.omegat.tokenizer.DefaultTokenizer;
 import org.omegat.tokenizer.ITokenizer;
 import org.omegat.gui.editor.autocompleter.AutoCompleter;
+import org.omegat.gui.editor.autocompleter.AutoCompleterItem;
 import org.omegat.gui.editor.autocompleter.AutoCompleterView;
 import org.omegat.util.OStrings;
 import org.omegat.util.TagUtil;
@@ -48,10 +49,10 @@ public class TagAutoCompleterView extends AutoCompleterView {
     }
 
     @Override
-    public List<String> computeListData(String wordChunk) {
+    public List<AutoCompleterItem> computeListData(String wordChunk) {
         
         List<String> missingGroups = TagUtil.getGroupedMissingTagsFromTarget();
-        
+                
         // Check for partial matches among missing tag groups.
         List<String> matchGroups = new ArrayList<String>();
         for (String g : missingGroups) {
@@ -64,14 +65,27 @@ public class TagAutoCompleterView extends AutoCompleterView {
                 && matchGroups.size() == 0
                 && missingGroups.size() > 0) {
             completer.adjustInsertionPoint(wordChunk.length());
-            return missingGroups;
+            return convertList(missingGroups);
         }
         
-        return missingGroups;
+        return convertList(matchGroups);
+    }
+    
+    private static List<AutoCompleterItem> convertList(List<String> list) {
+        List<AutoCompleterItem> result = new ArrayList<AutoCompleterItem>();
+        for (String s : list) {
+            result.add(new AutoCompleterItem(s, null));
+        }
+        return result;
     }
 
     @Override
     public ITokenizer getTokenizer() {
         return new DefaultTokenizer();
+    }
+
+    @Override
+    public String itemToString(AutoCompleterItem item) {
+        return item.payload;
     }
 }

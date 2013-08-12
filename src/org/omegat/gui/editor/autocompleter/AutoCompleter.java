@@ -43,8 +43,6 @@ import javax.swing.text.BadLocationException;
 import org.omegat.tokenizer.ITokenizer;
 import org.omegat.gui.editor.EditorTextArea3;
 import org.omegat.gui.editor.TagAutoCompleterView;
-import org.omegat.gui.editor.autotext.AutotextAutoCompleterView;
-import org.omegat.gui.glossary.GlossaryAutoCompleterView;
 import org.omegat.util.Log;
 import org.omegat.util.OStrings;
 import org.omegat.util.StaticUtils;
@@ -57,7 +55,7 @@ import org.omegat.util.Token;
  * @author Zoltan Bartko <bartkozoltan@bartkozoltan.com>
  * @author Aaron Madlon-Kay
  */
-public class AutoCompleter {    
+public class AutoCompleter {
     JList list = new JList(); 
     JPopupMenu popup = new JPopupMenu(); 
     EditorTextArea3 editor; 
@@ -86,7 +84,7 @@ public class AutoCompleter {
     
     JLabel viewLabel;
     
-    public AutoCompleter(EditorTextArea3 editor) { 
+    public AutoCompleter(EditorTextArea3 editor) {
         // add any views here
         //views.add(new GlossaryAutoCompleterView(this));
         //views.add(new AutotextAutoCompleterView(this));
@@ -343,15 +341,14 @@ public class AutoCompleter {
      * @param selected 
      */
     protected void acceptedListItem(AutoCompleterItem selected) { 
-        if (selected == null || selected == NO_SUGGESTIONS) {
-                return; 
-        }
-        
+        if (selected == null || selected == NO_SUGGESTIONS) 
+            return; 
+ 
         if (editor.getSelectionStart() == editor.getSelectionEnd()) {
             editor.setSelectionStart(wordChunkStart);
             editor.setSelectionEnd(editor.getCaretPosition());
         }
-        editor.replaceSelection(selected);
+        editor.replaceSelection(selected.payload);
     }
 
     private int nextViewNumber() {
