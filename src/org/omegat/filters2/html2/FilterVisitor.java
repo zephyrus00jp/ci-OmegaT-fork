@@ -45,6 +45,7 @@ import org.htmlparser.Node;
 import org.htmlparser.Remark;
 import org.htmlparser.Tag;
 import org.htmlparser.Text;
+import org.htmlparser.nodes.TextNode;
 import org.htmlparser.visitors.NodeVisitor;
 import org.omegat.core.Core;
 import org.omegat.util.OStrings;
@@ -197,11 +198,19 @@ public class FilterVisitor extends NodeVisitor {
                 maybeTranslateAttribute(tag, "src");
             maybeTranslateAttribute(tag, "summary");
             maybeTranslateAttribute(tag, "title");
-            if ("INPUT".equals(tag.getTagName())
-                    && (options.getTranslateValue() || "submit".equalsIgnoreCase(tag.getAttribute("type"))
-                            || "button".equalsIgnoreCase(tag.getAttribute("type")) || "reset"
-                            .equalsIgnoreCase(tag.getAttribute("type")) && options.getTranslateButtonValue()))
-                maybeTranslateAttribute(tag, "value");
+            if ("INPUT".equals(tag.getTagName())) { //an input element
+                if (   options.getTranslateValue() //and we translate all input elements
+                    || options.getTranslateButtonValue() // or we translate submit/button/reset elements ...
+                        && (  "submit".equalsIgnoreCase(tag.getAttribute("type"))
+                           || "button".equalsIgnoreCase(tag.getAttribute("type"))
+                           || "reset".equalsIgnoreCase(tag.getAttribute("type"))
+                           ) //and it is a submit/button/reset element.
+                   ) {
+                    //then translate the value
+                    maybeTranslateAttribute(tag, "value");
+                }
+                maybeTranslateAttribute(tag, "placeholder");
+            }
             // Special handling of meta-tag: depending on the other attributes
             // the contents-attribute should or should not be translated.
             // The group of attribute-value pairs indicating non-translation
@@ -256,7 +265,8 @@ public class FilterVisitor extends NodeVisitor {
     @Override
     public void visitStringNode(Text string) {
         recurse = true;
-        String trimmedtext = string.getText().trim();
+        // nbsp is special case - process it like usual spaces
+        String trimmedtext = entitiesToChars(string.getText()).replace((char) 160, ' ').trim();
         if (trimmedtext.length() > 0) {
             // Hack around HTMLParser not being able to handle XHTML
             // RFE pending:
@@ -480,10 +490,48 @@ public class FilterVisitor extends NodeVisitor {
             lastgood--;
         }
 
-        boolean removeTags = Core.getFilterMaster().getConfig().isRemoveTags();
-        if (!removeTags) {
-            firstgood = 0;
-            lastgood = all.size() - 1;
+        boolean changed = true;
+        while (changed) {
+            changed = false;
+            boolean removeTags = Core.getFilterMaster().getConfig().isRemoveTags();
+            if (!removeTags) {
+                for (int i = 0; i < firstgood; i++) {
+                    Node node = all.get(i);
+                    if (node instanceof Tag) {
+                        firstgood = i;
+                        changed = true;
+                        break;
+                    }
+                }
+                for (int i = all.size() - 1; i > lastgood; i--) {
+                    Node node = all.get(i);
+                    if (node instanceof Tag) {
+                        lastgood = i;
+                        changed = true;
+                        break;
+                    }
+                }
+            }
+
+            boolean removeSpacesAround = Core.getFilterMaster().getConfig().isRemoveSpacesNonseg();
+            if (!removeSpacesAround) {
+                for (int i = 0; i < firstgood; i++) {
+                    Node node = all.get(i);
+                    if (node instanceof TextNode) {
+                        firstgood = i;
+                        changed = true;
+                        break;
+                    }
+                }
+                for (int i = all.size() - 1; i > lastgood; i--) {
+                    Node node = all.get(i);
+                    if (node instanceof TextNode) {
+                        lastgood = i;
+                        changed = true;
+                        break;
+                    }
+                }
+            }
         }
 
         // writing out all tags before the "first good" one

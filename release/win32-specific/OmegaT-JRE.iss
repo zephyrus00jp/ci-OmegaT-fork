@@ -21,6 +21,7 @@ Source: "images\*"; DestDir: "{app}\images"; Flags: recursesubdirs
 Source: "lib\*"; DestDir: "{app}\lib"; Flags: recursesubdirs
 Source: "native\*"; DestDir: "{app}\native"; Flags: recursesubdirs
 Source: "plugins\*"; DestDir: "{app}\plugins"; Flags: recursesubdirs
+Source: "scripts\*"; DestDir: "{app}\scripts"; Flags: recursesubdirs
 Source: "..\..\jre\*"; DestDir: "{app}\jre"; Flags: recursesubdirs
 Source: "OmegaT.exe"; DestDir: "{app}"
 Source: "OmegaT.l4J.ini"; DestDir: "{app}"; AfterInstall: SetUserLanguage; Flags: onlyifdoesntexist
@@ -32,9 +33,12 @@ Source: "readme_ar.txt"; DestDir: "{app}"; Flags: isreadme; Languages: ar
 Source: "readme_ca.txt"; DestDir: "{app}"; Flags: isreadme; Languages: ca
 Source: "readme_cs.txt"; DestDir: "{app}"; Flags: isreadme; Languages: cs
 ;Source: "readme_cy.txt"; DestDir: "{app}"; Flags: isreadme; Languages: cy
+Source: "readme_da.txt"; DestDir: "{app}"; Flags: isreadme; Languages: da
 Source: "readme_de.txt"; DestDir: "{app}"; Flags: isreadme; Languages: de
+Source: "readme_es.txt"; DestDir: "{app}"; Flags: isreadme; Languages: es
 Source: "readme_eu.txt"; DestDir: "{app}"; Flags: isreadme; Languages: eu
 Source: "readme_fr.txt"; DestDir: "{app}"; Flags: isreadme; Languages: fr
+Source: "readme_gl.txt"; DestDir: "{app}"; Flags: isreadme; Languages: gl
 Source: "readme_hu.txt"; DestDir: "{app}"; Flags: isreadme; Languages: hu
 Source: "readme_it.txt"; DestDir: "{app}"; Flags: isreadme; Languages: it
 Source: "readme_ja.txt"; DestDir: "{app}"; Flags: isreadme; Languages: ja
@@ -48,6 +52,7 @@ Source: "readme_sl.txt"; DestDir: "{app}"; Flags: isreadme; Languages: sl
 Source: "readme_sq.txt"; DestDir: "{app}"; Flags: isreadme; Languages: sq
 Source: "readme_sv.txt"; DestDir: "{app}"; Flags: isreadme; Languages: sv
 Source: "readme_tr.txt"; DestDir: "{app}"; Flags: isreadme; Languages: tr
+Source: "readme_uk.txt"; DestDir: "{app}"; Flags: isreadme; Languages: uk
 Source: "readme_zh_CN.txt"; DestDir: "{app}"; Flags: isreadme; Languages: zh_CN
 Source: "readme_zh_TW.txt"; DestDir: "{app}"; Flags: isreadme; Languages: zh_TW
 Source: "readme*.txt"; DestDir: "{app}";

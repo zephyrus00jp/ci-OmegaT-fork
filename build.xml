@@ -35,10 +35,21 @@
     <import file="nbproject/build-impl.xml"/>
     <import file="nbproject/profiler-build-impl.xml"/>
 
+    <fileset dir="lib" id="all-jars-fileset">
+        <include name="**/*.jar"/>
+    </fileset>
+    <pathconvert pathsep=" " property="all-jars-path" refid="all-jars-fileset">
+        <chainedmapper>
+            <flattenmapper/>
+            <globmapper from="*" to="lib/*"/>
+        </chainedmapper>
+    </pathconvert>
+
     <target name="-pre-init">
         <property name="iscc.exe" value="iscc.exe"/>
         <property file="src/org/omegat/Version.properties"/>
         <filter filtersfile="src/org/omegat/Version.properties"/>
+        <filter token="all-jars-path" value="${all-jars-path}"/>
         <copy file="manifest-template.mf" tofile="manifest.mf" filtering="true"/>
         <condition property="updatenr"
                    value="0${update}"
@@ -70,6 +81,10 @@
         <!-- copy the native libraries to the distribution directory -->
         <copy todir="dist/native">
             <fileset dir="native"/>
+        </copy>
+        <!-- copy scripts to the distribution directory -->
+        <copy todir="dist/scripts">
+            <fileset dir="scripts"/>
         </copy>
     </target>
     
@@ -178,10 +193,11 @@
         <copy todir="dist/images">
             <fileset dir="images"/>
         </copy>
+        <!-- Already done by "jar" 
         <mkdir dir="dist/lib"/>
         <copy todir="dist/lib">
             <fileset dir="lib" excludes="sources/**"/>
-        </copy>
+        </copy> -->
     </target>
    
     <!-- Builds a ZIP distribution -->    

@@ -67,7 +67,17 @@ public class LanguageToolWrapper implements IMarker, IProjectEventListener {
 
     private JCheckBoxMenuItem menuItem;
 
-    private boolean disabled = true;
+    protected boolean disabled = true;
+
+    /**
+     * Register plugin into OmegaT.
+     */
+    public static void loadPlugins() {
+        Core.registerMarkerClass(LanguageToolWrapper.class);
+    }
+
+    public static void unloadPlugins() {
+    }
 
     public LanguageToolWrapper() throws Exception {
         disabled = Preferences.isPreferenceDefault(Preferences.LT_DISABLED, true);
@@ -81,7 +91,7 @@ public class LanguageToolWrapper implements IMarker, IProjectEventListener {
         CoreEvents.registerProjectChangeListener(this);
     }
 
-    public void onProjectChanged(PROJECT_CHANGE_TYPE eventType) {
+    public synchronized void onProjectChanged(PROJECT_CHANGE_TYPE eventType) {
         switch (eventType) {
         case CREATE:
         case LOAD:
@@ -117,7 +127,7 @@ public class LanguageToolWrapper implements IMarker, IProjectEventListener {
     }
 
     @Override
-    public List<Mark> getMarksForEntry(SourceTextEntry ste, String sourceText, String translationText, boolean isActive)
+    public synchronized List<Mark> getMarksForEntry(SourceTextEntry ste, String sourceText, String translationText, boolean isActive)
             throws Exception {
         if (translationText == null || disabled) {
             return null;

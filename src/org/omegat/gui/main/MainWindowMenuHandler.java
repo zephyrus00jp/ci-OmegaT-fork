@@ -10,7 +10,7 @@
                2009 Didier Briel, Alex Buloichik
                2010 Wildrich Fourie, Didier Briel
                2012 Wildrich Fourie, Guido Leenders, Didier Briel
-               2013 Zoltan Bartko
+               2013 Zoltan Bartko, Didier Briel
                Home page: http://www.omegat.org/
                Support center: http://groups.yahoo.com/group/OmegaT/
 
@@ -50,7 +50,9 @@ import org.omegat.core.data.SourceTextEntry;
 import org.omegat.core.data.TMXEntry;
 import org.omegat.core.segmentation.SRX;
 import org.omegat.core.spellchecker.ISpellChecker;
+import org.omegat.core.tagvalidation.ErrorReport;
 import org.omegat.filters2.master.FilterMaster;
+import org.omegat.filters2.master.PluginUtils;
 import org.omegat.gui.dialogs.AboutDialog;
 import org.omegat.gui.dialogs.AutotextAutoCompleterOptionsDialog;
 import org.omegat.gui.dialogs.CharTableAutoCompleterOptionsDialog;
@@ -58,6 +60,7 @@ import org.omegat.gui.dialogs.ExternalTMXMatchesDialog;
 import org.omegat.gui.dialogs.FontSelectionDialog;
 import org.omegat.gui.dialogs.GlossaryAutoCompleterOptionsDialog;
 import org.omegat.gui.dialogs.LastChangesDialog;
+import org.omegat.gui.dialogs.LogDialog;
 import org.omegat.gui.dialogs.SaveOptionsDialog;
 import org.omegat.gui.dialogs.SpellcheckerConfigurationDialog;
 import org.omegat.gui.dialogs.TagValidationOptionsDialog;
@@ -72,7 +75,6 @@ import org.omegat.gui.help.HelpFrame;
 import org.omegat.gui.search.SearchWindowController;
 import org.omegat.gui.segmentation.SegmentationCustomizer;
 import org.omegat.gui.stat.StatisticsWindow;
-import org.omegat.gui.tagvalidation.ErrorReport;
 import org.omegat.util.FileUtil;
 import org.omegat.util.Language;
 import org.omegat.util.Log;
@@ -235,6 +237,8 @@ public class MainWindowMenuHandler {
                 }
 
                 CoreEvents.fireApplicationShutdown();
+
+                PluginUtils.unloadPlugins();
 
                 return null;
             }
@@ -882,6 +886,13 @@ public class MainWindowMenuHandler {
         new LastChangesDialog(mainWindow).setVisible(true);
     }
 
+    /**
+     * Show log
+     */
+    public void helpLogMenuItemActionPerformed() {
+        new LogDialog(mainWindow).setVisible(true);
+    }
+    
     /**
      * Displays the dialog to set login and password for proxy.
      */

@@ -27,6 +27,7 @@
 package org.omegat.core;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -36,7 +37,9 @@ import org.omegat.core.spellchecker.ISpellChecker;
 import org.omegat.core.spellchecker.SpellChecker;
 import org.omegat.core.threads.IAutoSave;
 import org.omegat.core.threads.SaveThread;
+import org.omegat.filters2.IFilter;
 import org.omegat.filters2.master.FilterMaster;
+import org.omegat.filters2.master.PluginUtils;
 import org.omegat.gui.comments.CommentsTextArea;
 import org.omegat.gui.dictionaries.DictionariesTextArea;
 import org.omegat.gui.editor.EditorController;
@@ -48,6 +51,7 @@ import org.omegat.gui.editor.mark.NBSPMarker;
 import org.omegat.gui.editor.mark.ProtectedPartsMarker;
 import org.omegat.gui.editor.mark.RemoveTagMarker;
 import org.omegat.gui.editor.mark.WhitespaceMarkerFactory;
+import org.omegat.gui.exttrans.IMachineTranslation;
 import org.omegat.gui.exttrans.MachineTranslateTextArea;
 import org.omegat.gui.glossary.GlossaryManager;
 import org.omegat.gui.glossary.GlossaryTextArea;
@@ -62,6 +66,7 @@ import org.omegat.gui.notes.INotes;
 import org.omegat.gui.notes.NotesTextArea;
 import org.omegat.gui.tagvalidation.ITagValidation;
 import org.omegat.gui.tagvalidation.TagValidationTool;
+import org.omegat.tokenizer.ITokenizer;
 import org.omegat.util.Preferences;
 import org.omegat.util.StaticUtils;
 
@@ -102,6 +107,8 @@ public class Core {
     private static CommentsTextArea comments;
 
     private static Map<String, String> cmdLineParams;
+
+    private static List<String> pluginsLoadingErrors = Collections.synchronizedList(new ArrayList<String>());
 
     private static final List<IMarker> markers = new ArrayList<IMarker>();
     
@@ -261,8 +268,37 @@ public class Core {
     public static Map<String, String> getParams() {
         return cmdLineParams;
     }
+
+    public static void registerFilterClass(Class<? extends IFilter> clazz) {
+        PluginUtils.getFilterClasses().add(clazz);
+    }
+
+    public static void registerMachineTranslationClass(Class<? extends IMachineTranslation> clazz) {
+        PluginUtils.getMachineTranslationClasses().add(clazz);
+    }
+
+    public static void registerMarkerClass(Class<? extends IMarker> clazz) {
+        PluginUtils.getMarkerClasses().add(clazz);
+    }
+
+    public static void registerTokenizerClass(Class<? extends ITokenizer> clazz) {
+        PluginUtils.getTokenizerClasses().add(clazz);
+    }
+
+    /**
+     * Get all plugin loading errors.
+     */
+    public static List<String> getPluginsLoadingErrors() {
+        return pluginsLoadingErrors;
+    }
+
+    /**
+     * Any plugin can call this method for say about error on loading.
+     */
+    public static void pluginLoadingError(String errorText) {
+        pluginsLoadingErrors.add(errorText);
+    }
     
     public static Autotext getAutoText() {
         return autoText;
-    }
-}
+    }}

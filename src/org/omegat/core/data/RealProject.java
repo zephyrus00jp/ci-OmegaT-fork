@@ -53,6 +53,7 @@ import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.lucene.util.Version;
 import org.omegat.core.Core;
 import org.omegat.core.CoreEvents;
 import org.omegat.core.KnownException;
@@ -152,7 +153,7 @@ public class RealProject implements IProject {
     protected final List<FileInfo> projectFilesList = new ArrayList<FileInfo>();
 
     /** This instance returned if translation not exist. */
-    private static final TMXEntry EMPTY_TRANSLATION = new TMXEntry("", null, null, 0, null, true);
+    private static final TMXEntry EMPTY_TRANSLATION = new TMXEntry("", null, true);
     
     private boolean allowTranslationEqualToSource = Preferences.isPreference(Preferences.ALLOW_TRANS_EQUAL_TO_SRC);
 
@@ -180,9 +181,11 @@ public class RealProject implements IProject {
         this.repository = repository;
 
         sourceTokenizer = createTokenizer(Core.getParams().get(ITokenizer.CLI_PARAM_SOURCE), props.getSourceTokenizer());
-        Log.log("Source tokenizer: " + sourceTokenizer.getClass().getName());
+        configTokenizer(Core.getParams().get(ITokenizer.CLI_PARAM_SOURCE_BEHAVIOR), sourceTokenizer);
+        Log.log("Source tokenizer: " + sourceTokenizer.getClass().getName() + " (" + sourceTokenizer.getBehavior() + ")");
         targetTokenizer = createTokenizer(Core.getParams().get(ITokenizer.CLI_PARAM_TARGET), props.getTargetTokenizer());
-        Log.log("Target tokenizer: " + targetTokenizer.getClass().getName());
+        configTokenizer(Core.getParams().get(ITokenizer.CLI_PARAM_TARGET_BEHAVIOR), targetTokenizer);
+        Log.log("Target tokenizer: " + targetTokenizer.getClass().getName() + " (" + targetTokenizer.getBehavior() + ")");
     }
     
     public IRemoteRepository getRepository() {
@@ -191,8 +194,11 @@ public class RealProject implements IProject {
 
     public void saveProjectProperties() throws Exception {
         unlockProject();
-        ProjectFileStorage.writeProjectFile(m_config);
-        lockProject();
+        try {
+            ProjectFileStorage.writeProjectFile(m_config);
+        } finally {
+            lockProject();
+        }
         Preferences.setPreference(Preferences.SOURCE_LOCALE, m_config.getSourceLanguage().toString());
         Preferences.setPreference(Preferences.TARGET_LOCALE, m_config.getTargetLanguage().toString());
     }
@@ -204,9 +210,11 @@ public class RealProject implements IProject {
         Log.logInfoRB("LOG_DATAENGINE_CREATE_START");
         UIThreadsUtil.mustNotBeSwingThread();
 
-        lockProject();
-
         try {
+            if (!lockProject()) {
+                throw new KnownException("PROJECT_LOCKED");
+            }
+
             createDirectory(m_config.getProjectRoot(), null);
             createDirectory(m_config.getProjectInternal(), OConsts.DEFAULT_INTERNAL);
             createDirectory(m_config.getSourceRoot(), OConsts.DEFAULT_SOURCE);
@@ -247,11 +255,13 @@ public class RealProject implements IProject {
         Log.logInfoRB("LOG_DATAENGINE_LOAD_START");
         UIThreadsUtil.mustNotBeSwingThread();
 
-        lockProject();
-        isOnlineMode = onlineMode;
-
         // load new project
         try {
+            if (!lockProject()) {
+                throw new KnownException("PROJECT_LOCKED");
+            }
+            isOnlineMode = onlineMode;
+
             Preferences.setPreference(Preferences.CURRENT_FOLDER, new File(m_config.getProjectRoot())
                     .getParentFile().getAbsolutePath());
             Preferences.save();
@@ -354,7 +364,7 @@ public class RealProject implements IProject {
      * {@inheritDoc}
      */
     public boolean isProjectLoaded() {
-        return true;
+        return projectTMX != null;
     }
 
     /**
@@ -379,21 +389,31 @@ public class RealProject implements IProject {
     /**
      * Lock omegat.project file against rename or move project.
      */
-    protected void lockProject() {
+    protected boolean lockProject() {
         if (!RuntimePreferences.isProjectLockingEnabled()) {
-            return;
+            return true;
         }
         if (repository != null) {
             if (!repository.isFilesLockingAllowed()) {
-                return;
+                return true;
             }
         }
         try {
             File lockFile = new File(m_config.getProjectRoot(), OConsts.FILE_PROJECT);
             lockChannel = new RandomAccessFile(lockFile, "rw").getChannel();
-            lock = lockChannel.lock();
-        } catch (Exception ex) {
+            lock = lockChannel.tryLock();
+        } catch (Throwable ex) {
             Log.log(ex);
+        }
+        if (lock == null) {
+            try {
+                lockChannel.close();
+            } catch (Throwable ex) {
+            }
+            lockChannel = null;
+            return false;
+        } else {
+            return true;
         }
     }
 
@@ -410,9 +430,13 @@ public class RealProject implements IProject {
             }
         }
         try {
-            lock.release();
-            lockChannel.close();
-        } catch (Exception ex) {
+            if (lock != null) {
+                lock.release();
+            }
+            if (lockChannel != null) {
+                lockChannel.close();
+            }
+        } catch (Throwable ex) {
             Log.log(ex);
         }
     }
@@ -736,10 +760,11 @@ public class RealProject implements IProject {
         //Note that we can replace restoreBase with reset for the same functionality.
         //Here I keep a separate call, just to make it clear what and why we are doing
         //and to allow to make this feature optional in future releases
+        unlockProject(); // So that we are able to replace omegat.project
         try {
             repository.reset();
-        } catch (Exception e) {
-            //too bad, but not a real problem.
+        } finally {
+            lockProject(); // we restore the lock
         }
 
         /* project is now in a bad state!
@@ -1034,7 +1059,7 @@ public class RealProject implements IProject {
                     TMXEntry enDefault = projectTMX.getDefaultTranslation(ste.getSrcText());
                     if (enDefault == null) {
                         // default not exist yet - yes, we can
-                        TMXEntry tr = new TMXEntry(ste.getSrcText(), ste.getSourceTranslation(), null, 0, null, true);
+                        TMXEntry tr = new TMXEntry(ste.getSrcText(), ste.getSourceTranslation(), true);
                         projectTMX.setTranslation(ste, tr, true);
                         allowToImport.put(ste.getSrcText(), ste.getSourceTranslation());
                     } else {
@@ -1045,8 +1070,7 @@ public class RealProject implements IProject {
                         if (justImported != null && !ste.getSourceTranslation().equals(justImported)) {
                             // we just imported default and it doesn't equals to
                             // current - import as alternative
-                            TMXEntry tr = new TMXEntry(ste.getSrcText(), ste.getSourceTranslation(), null, 0, null,
-                                    false);
+                            TMXEntry tr = new TMXEntry(ste.getSrcText(), ste.getSourceTranslation(), false);
                             projectTMX.setTranslation(ste, tr, false);
                         }
                     }
@@ -1055,7 +1079,7 @@ public class RealProject implements IProject {
                     TMXEntry en = projectTMX.getMultipleTranslation(ste.getKey());
                     if (en == null) {
                         // not exist yet - yes, we can
-                        TMXEntry tr = new TMXEntry(ste.getSrcText(), ste.getSourceTranslation(), null, 0, null, false);
+                        TMXEntry tr = new TMXEntry(ste.getSrcText(), ste.getSourceTranslation(), false);
                         projectTMX.setTranslation(ste, tr, false);
                     }
                 }
@@ -1203,15 +1227,24 @@ public class RealProject implements IProject {
      * {@inheritDoc}
      */
     public void setTranslation(final SourceTextEntry entry, final String trans, String note, boolean isDefault) {
-        String author = Preferences.getPreferenceDefault(Preferences.TEAM_AUTHOR,
-                System.getProperty("user.name"));
 
         TMXEntry prevTrEntry = isDefault ? projectTMX.getDefaultTranslation(entry.getSrcText()) : projectTMX
                 .getMultipleTranslation(entry.getKey());
+        
+        String creator;
+        long creationDate;
+        String changer = Preferences.getPreferenceDefault(Preferences.TEAM_AUTHOR,
+                System.getProperty("user.name"));
+        long changeDate = System.currentTimeMillis();
 
         if (prevTrEntry == null) {
             // there was no translation yet
             prevTrEntry = EMPTY_TRANSLATION;
+            creationDate = changeDate;
+            creator = changer;
+        } else {
+            creationDate = prevTrEntry.creationDate;
+            creator = prevTrEntry.creator;
         }
         
         TMXEntry newTrEntry;
@@ -1223,16 +1256,16 @@ public class RealProject implements IProject {
             }
             // only note was changed
             newTrEntry = new TMXEntry(prevTrEntry.source, prevTrEntry.translation, prevTrEntry.changer,
-                    prevTrEntry.changeDate, (StringUtil.isEmpty(note) ? null : note),
-                    prevTrEntry.defaultTranslation);
+                    prevTrEntry.changeDate, prevTrEntry.creator, prevTrEntry.creationDate,
+                    (StringUtil.isEmpty(note) ? null : note), prevTrEntry.defaultTranslation, null);
         } else {
             // translation was changed
             if (trans == null && StringUtil.isEmpty(note)) {
                 // no translation, no note
                 newTrEntry = null;
             } else {
-                newTrEntry = new TMXEntry(entry.getSrcText(), trans, author, System.currentTimeMillis(),
-                        (StringUtil.isEmpty(note) ? null : note), isDefault);
+                newTrEntry = new TMXEntry(entry.getSrcText(), trans, changer, changeDate,
+                        creator, creationDate, (StringUtil.isEmpty(note) ? null : note), isDefault, null);
             }
         }
 
@@ -1324,10 +1357,47 @@ public class RealProject implements IProject {
         try {
             return (ITokenizer) projectPref.newInstance();
         } catch (Throwable e) {
-            Log.log(e.getMessage());
+            Log.log(e);
         }
         
         return new DefaultTokenizer();
+    }
+
+    /**
+     * Set the tokenizer's behavior. Behaviors are prioritized:
+     * <ol><li>Behavior specified on command line via <code>--ITokenizerBehavior</code>
+     * and <code>--ITokenizerTargetBehavior</code>
+     * <li>Behavior specified in OmegaT preferences</li>
+     * <li>Per-tokenizer default setting</li>
+     * </ol>
+     * @param cmdLine Lucene {@link Version} specified on command line
+     * @param tokenizer The tokenizer to configure
+     */
+    protected void configTokenizer(String cmdLine, ITokenizer tokenizer) {
+        // Set from command line.
+        if (cmdLine != null && cmdLine.length() > 0) {
+            try {
+                tokenizer.setBehavior(Version.valueOf(cmdLine));
+                return;
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
+            }
+        }
+        
+        // Set from OmegaT prefs.
+        String vString = Preferences.getPreferenceDefault(
+                Preferences.TOK_BEHAVIOR_PREFIX + tokenizer.getClass().getName(),
+                null);
+         if (vString != null && vString.length() > 0) {
+             try {
+                 tokenizer.setBehavior(Version.valueOf(vString));
+                 return;
+             }  catch (Throwable e) {
+                 throw new RuntimeException(e);
+             }
+         }
+         
+         // Use tokenizer default as last resort.
     }
 
     /**
@@ -1455,7 +1525,7 @@ public class RealProject implements IProject {
                         if (isFuzzy) {
                             transS = "[" + filter.getFuzzyMark() + "] " + transS;
                         }
-                        data.put(sourceS, new TMXEntry(sourceS, transS, null, 0, null, true));
+                        data.put(sourceS, new TMXEntry(sourceS, transS, true));
                     } else {
                         for (short i = 0; i < segmentsSource.size(); i++) {
                             String oneSrc = segmentsSource.get(i);
@@ -1463,14 +1533,14 @@ public class RealProject implements IProject {
                             if (isFuzzy) {
                                 oneTrans = "[" + filter.getFuzzyMark() + "] " + oneTrans;
                             }
-                            data.put(sourceS, new TMXEntry(oneSrc, oneTrans, null, 0, null, true));
+                            data.put(sourceS, new TMXEntry(oneSrc, oneTrans, true));
                         }
                     }
                 } else {
                     if (isFuzzy) {
                         transS = "[" + filter.getFuzzyMark() + "] " + transS;
                     }
-                    data.put(sourceS, new TMXEntry(sourceS, transS, null, 0, null, true));
+                    data.put(sourceS, new TMXEntry(sourceS, transS, true));
                 }
             }
         }

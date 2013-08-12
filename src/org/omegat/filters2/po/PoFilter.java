@@ -68,6 +68,7 @@ public class PoFilter extends AbstractFilter {
     public static final String OPTION_ALLOW_BLANK = "disallowBlank";
     public static final String OPTION_SKIP_HEADER = "skipHeader";
     public static final String OPTION_AUTO_FILL_IN_PLURAL_STATEMENT = "autoFillInPluralStatement";
+    public static final String OPTION_FORMAT_MONOLINGUAL = "monolingualFormat";
 
     private static class PluralInfo {
         public int plurals;
@@ -232,6 +233,11 @@ public class PoFilter extends AbstractFilter {
      */
     public static boolean skipHeader = false;
     /**
+     * If true, wrong but widely used format support, where msgid contains ID, msgstr contains original text.
+     */
+    public static boolean formatMonolingual = false;
+
+    /**
      * If true, the "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;" section
      * in the header will be updated with the correct INTEGER and EXPRESSION
      * based on the chosen targetLanguage
@@ -304,6 +310,12 @@ public class PoFilter extends AbstractFilter {
         } else {
             autoFillInPluralStatement = false;
         }
+        String formatMonolingualStr = processOptions.get(OPTION_FORMAT_MONOLINGUAL);
+        if ("true".equalsIgnoreCase(formatMonolingualStr)) {
+            formatMonolingual = true;
+        } else {
+            formatMonolingual = false;
+        }
 
         inEncodingLastParsedFile = fc.getInEncoding();
         BufferedReader reader = createReader(inFile, inEncodingLastParsedFile);
@@ -368,7 +380,7 @@ public class PoFilter extends AbstractFilter {
         translatorComments = new StringBuilder();
         extractedComments = new StringBuilder();
         references = new StringBuilder();
-        path = null;
+        path = "";
 
         String s;
         while ((s = in.readLine()) != null) {
@@ -560,7 +572,11 @@ public class PoFilter extends AbstractFilter {
             translation = null;
         }
         if (entryParseCallback != null) {
-            entryParseCallback.addEntry(id, source, translation, fuzzy, comments, path, this, null);
+            if (formatMonolingual) {
+                entryParseCallback.addEntry(source, translation, null, fuzzy, comments, path, this, null);
+            } else {
+                entryParseCallback.addEntry(id, source, translation, fuzzy, comments, path, this, null);
+            }
         } else if (entryAlignCallback != null) {
             entryAlignCallback.addTranslation(id, source, translation, fuzzy, null, this);
         }
@@ -574,7 +590,7 @@ public class PoFilter extends AbstractFilter {
     }
 
     protected void flushTranslation(MODE currentMode, FilterContext fc) throws IOException {
-        if (sources[0].length() == 0) {
+        if (sources[0].length() == 0 && path.isEmpty()) {
             if (targets[0].length() == 0) {
                 // there is no text to translate yet
                 return;
@@ -643,7 +659,7 @@ public class PoFilter extends AbstractFilter {
         for (int i=0;i<plurals;i++) {
             targets[i].setLength(0);
         }
-        path = null;
+        path = "";
         translatorComments.setLength(0);
         extractedComments.setLength(0);
         references.setLength(0);

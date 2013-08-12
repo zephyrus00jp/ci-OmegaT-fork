@@ -42,11 +42,13 @@ import javax.swing.text.BadLocationException;
 
 import org.omegat.tokenizer.ITokenizer;
 import org.omegat.gui.editor.EditorTextArea3;
+import org.omegat.gui.editor.TagAutoCompleterView;
 import org.omegat.gui.editor.autotext.AutotextAutoCompleterView;
 import org.omegat.gui.glossary.GlossaryAutoCompleterView;
 import org.omegat.util.Log;
 import org.omegat.util.OStrings;
 import org.omegat.util.StaticUtils;
+import org.omegat.util.TagUtil;
 import org.omegat.util.Token;
 
 /**
@@ -88,6 +90,7 @@ public class AutoCompleter {
         // add any views here
         //views.add(new GlossaryAutoCompleterView(this));
         //views.add(new AutotextAutoCompleterView(this));
+        views.add(new TagAutoCompleterView(this));
         
         this.editor = editor; 
         
@@ -216,62 +219,42 @@ public class AutoCompleter {
     }
     
     /** 
-     * Selects the next item in the list.  It won't change the selection if the 
-     * currently selected item is already the last item. 
+     * Selects the next item in the list.
      */ 
     protected void selectNextPossibleValue() { 
-        int si = list.getSelectedIndex(); 
- 
-        if (si < list.getModel().getSize() - 1) { 
-            list.setSelectedIndex(si + 1); 
-            list.ensureIndexIsVisible(si + 1); 
-        } 
-    } 
+        int i = (list.getSelectedIndex() + 1) % list.getModel().getSize();
+        list.setSelectedIndex(i);
+        list.ensureIndexIsVisible(i);
+    }
 
     /** 
-     * Selects the item in the list following the current one by 10 items or go to the first item. 
-     * currently selected item is already the last item. 
+     * Selects the item in the list following the current one by one page or go to the last item. 
      */ 
     protected void selectNextPossibleValueByPage() { 
-        int si = list.getSelectedIndex(); 
- 
-        int size = list.getModel().getSize();
-        if (si < size - 10) { 
-            list.setSelectedIndex(si + 10); 
-            list.ensureIndexIsVisible(si + 10); 
-        } else {
-            list.setSelectedIndex(size-1);
-            list.ensureIndexIsVisible(size-1);
-        }
-    } 
+        int page = list.getLastVisibleIndex() - list.getFirstVisibleIndex();
+        int i = Math.min(list.getSelectedIndex() + page, list.getModel().getSize() - 1);
+        list.setSelectedIndex(i);
+        list.ensureIndexIsVisible(i);
+    }
 
     /** 
-     * Selects the previous item in the list.  It won't change the selection if the 
-     * currently selected item is already the first item. 
+     * Selects the previous item in the list.
      */ 
-    protected void selectPreviousPossibleValue() { 
-        int si = list.getSelectedIndex(); 
-
-        if (si > 0) { 
-            list.setSelectedIndex(si - 1); 
-            list.ensureIndexIsVisible(si - 1); 
-        } 
+    protected void selectPreviousPossibleValue() {
+        int s = list.getModel().getSize();
+        int i = (list.getSelectedIndex() - 1 + s) % s;
+        list.setSelectedIndex(i);
+        list.ensureIndexIsVisible(i);
     } 
     
     /** 
-     * Selects the item in the list preceding the current one by 10 items or go to the first item.  It won't change the selection if the 
-     * currently selected item is already the first item. 
+     * Selects the item in the list preceding the current one by one page or go to the first item.
      */ 
     protected void selectPreviousPossibleValueByPage() { 
-        int si = list.getSelectedIndex(); 
-
-        if (si > 10) {
-            list.setSelectedIndex(si - 10); 
-            list.ensureIndexIsVisible(si - 10); 
-        } else { 
-            list.setSelectedIndex(0); 
-            list.ensureIndexIsVisible(0); 
-        } 
+        int page = list.getLastVisibleIndex() - list.getFirstVisibleIndex();
+        int i = Math.max(list.getSelectedIndex() - page, 0);
+        list.setSelectedIndex(i);
+        list.ensureIndexIsVisible(i);
     }
     
     /**
@@ -301,6 +284,7 @@ public class AutoCompleter {
             }
             updateViewLabel();
             popup.show(editor, x, y);
+            list.ensureIndexIsVisible(list.getSelectedIndex());
         } else {
             popup.setVisible(false);
         }
@@ -331,7 +315,7 @@ public class AutoCompleter {
                 if (tokens.length != 0) {
                     Token lastToken = tokens[tokens.length - 1];
                     String lastString = prevText.substring(lastToken.getOffset()).trim();
-                    if (lastString.length() > 0) {
+                    if (lastString.length() > 0 && !TagUtil.getAllTagsInSource().contains(lastString)) {
                         wordChunk = lastString;
                         wordChunkStart = translationStart + lastToken.getOffset();
                     }
@@ -359,45 +343,23 @@ public class AutoCompleter {
      * @param selected 
      */
     protected void acceptedListItem(AutoCompleterItem selected) { 
-        try {
-            if (selected == null || selected == NO_SUGGESTIONS) 
+        if (selected == null || selected == NO_SUGGESTIONS) {
                 return; 
-     
-            int offset = editor.getCaretPosition();
-            
-            if (editor.getSelectionStart() == editor.getSelectionEnd()) {
-                editor.setSelectionStart(wordChunkStart);
-                editor.setSelectionEnd(offset);
-            }
-            StringBuilder builder = new StringBuilder(selected.payload);
-            if (Character.isUpperCase(editor.getText(offset,1).charAt(0))) {    
-                builder.setCharAt(0, Character.toUpperCase(builder.charAt(0)));
-            }
-            editor.replaceSelection(builder.toString());
-            
-        } catch (BadLocationException ex) {
-            Log.log(ex);
         }
+        
+        if (editor.getSelectionStart() == editor.getSelectionEnd()) {
+            editor.setSelectionStart(wordChunkStart);
+            editor.setSelectionEnd(editor.getCaretPosition());
+        }
+        editor.replaceSelection(selected);
     }
 
     private int nextViewNumber() {
-        if (views.size() == 1)
-            return currentView;
-        
-        if (currentView + 1 >= views.size()) {
-            return 0;
-        }
-        return currentView + 1;
+        return (currentView + 1) % views.size();
     }
     
     private int prevViewNumber() {
-        if (views.size() == 1)
-            return currentView;
-        
-        if (currentView == 0) {
-            return views.size() - 1;
-        }
-        return currentView - 1;
+        return (currentView - 1 + views.size()) % views.size();
     }
     
     private void updateViewLabel() {
@@ -434,14 +396,7 @@ public class AutoCompleter {
     }
 
     private void selectPreviousView() {
-        if (views.size() == 1)
-            return;
-        
-        if (currentView - 1 < 0) {
-            currentView = views.size()-1;
-        } else {
-            currentView--;
-        }
+        currentView = prevViewNumber();
         
         updatePopup();
     }

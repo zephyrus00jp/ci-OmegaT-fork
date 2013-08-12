@@ -26,6 +26,7 @@
 package org.omegat.gui.matches;
 
 import org.omegat.util.VarExpansion;
+import org.omegat.core.data.ProjectProperties;
 import org.omegat.core.matching.DiffDriver;
 import org.omegat.core.matching.DiffDriver.TextRun;
 import org.omegat.core.matching.DiffDriver.Render;
@@ -57,8 +58,22 @@ public class MatchesVarExpansion extends VarExpansion<NearString> {
     public static final String VAR_SCORE_BASE = "${score}";
     public static final String VAR_SCORE_NOSTEM = "${noStemScore}";
     public static final String VAR_SCORE_ADJUSTED = "${adjustedScore}";
+    /**
+     * For backwards compatibility, this variable is an alias for {@link #VAR_CHANGED_ID}.
+     * For the actual creation ID, use {@link #VAR_INITIAL_CREATION_ID}.
+     */
+    @Deprecated
     public static final String VAR_CREATION_ID = "${creationId}";
+    /**
+     * For backwards compatibility, this variable is an alias for {@link #VAR_CHANGED_DATE}.
+     * For the actual creation date, use {@link #VAR_INITIAL_CREATION_DATE}.
+     */
+    @Deprecated
     public static final String VAR_CREATION_DATE = "${creationDate}";
+    public static final String VAR_INITIAL_CREATION_ID = "${initialCreationId}";
+    public static final String VAR_INITIAL_CREATION_DATE = "${initialCreationDate}";
+    public static final String VAR_CHANGED_ID = "${changedId}";
+    public static final String VAR_CHANGED_DATE = "${changedDate}";
     public static final String VAR_FUZZY_FLAG = "${fuzzyFlag}";
     public static final String VAR_DIFF = "${diff}";
     
@@ -70,11 +85,12 @@ public class MatchesVarExpansion extends VarExpansion<NearString> {
         VAR_TARGET_TEXT, 
         VAR_SCORE_BASE, VAR_SCORE_NOSTEM, VAR_SCORE_ADJUSTED,
         VAR_FILE_NAME_ONLY, VAR_FILE_PATH, VAR_FILE_SHORT_PATH,
-        VAR_CREATION_ID, VAR_CREATION_DATE, VAR_FUZZY_FLAG
+        VAR_INITIAL_CREATION_ID, VAR_INITIAL_CREATION_DATE,
+        VAR_CHANGED_ID, VAR_CHANGED_DATE, VAR_FUZZY_FLAG
     };
     
     public static final String DEFAULT_TEMPLATE = VAR_ID + ") " 
-			+ VAR_FUZZY_FLAG
+            + VAR_FUZZY_FLAG
             + VAR_SOURCE_TEXT + "\n"
             + VAR_TARGET_TEXT + "\n"
             + "<" + VAR_SCORE_BASE + "/" 
@@ -109,8 +125,8 @@ public class MatchesVarExpansion extends VarExpansion<NearString> {
     public static class Result {
         public String text; 
         public int sourcePos;
-	public List<TextRun> diffInfo;
-	public int diffPos;
+    public List<TextRun> diffInfo;
+    public int diffPos;
     }
     
     /** A simple interface for making anonymous functions that perform string replacements. */
@@ -166,18 +182,31 @@ public class MatchesVarExpansion extends VarExpansion<NearString> {
     @Override
     public String expandVariables (NearString match) {
         String localTemplate = this.template; // do not modify template directly, so that we can reuse for another change
-        localTemplate = localTemplate.replace(VAR_CREATION_ID, match.creator == null ? "" : match.creator);
+        localTemplate = localTemplate.replace(VAR_INITIAL_CREATION_ID, match.creator == null ? "" : match.creator);
+        // VAR_CREATION_ID is an alias for VAR_CHANGED_ID, for backwards compatibility.
+        for (String s : new String[] {VAR_CHANGED_ID, VAR_CREATION_ID}) {
+            localTemplate = localTemplate.replace(s, match.changer == null ? "" : match.changer);
+        }
         if (match.creationDate > 0)
-            localTemplate = localTemplate.replace(VAR_CREATION_DATE, DateFormat.getInstance().format(new Date (match.creationDate)));
+            localTemplate = localTemplate.replace(VAR_INITIAL_CREATION_DATE, DateFormat.getInstance().format(new Date (match.creationDate)));
         else
-            localTemplate = localTemplate.replace(VAR_CREATION_DATE, "");
-        localTemplate = localTemplate.replace(VAR_SCORE_BASE, Integer.toString(match.score));
-        localTemplate = localTemplate.replace(VAR_SCORE_NOSTEM, Integer.toString(match.scoreNoStem));
-        localTemplate = localTemplate.replace(VAR_SCORE_ADJUSTED, Integer.toString(match.adjustedScore));
+            localTemplate = localTemplate.replace(VAR_INITIAL_CREATION_DATE, "");
+        // VAR_CREATION_DATE is an alias for VAR_CHANGED_DATE, for backwards compatibility.
+        for (String s : new String[] {VAR_CHANGED_DATE, VAR_CREATION_DATE}) {
+            if (match.changedDate > 0)
+                localTemplate = localTemplate.replace(s, DateFormat.getInstance().format(new Date (match.changedDate)));
+            else
+                localTemplate = localTemplate.replace(s, "");
+        }
+        localTemplate = localTemplate.replace(VAR_SCORE_BASE, Integer.toString(match.scores[0].score));
+        localTemplate = localTemplate.replace(VAR_SCORE_NOSTEM, Integer.toString(match.scores[0].scoreNoStem));
+        localTemplate = localTemplate.replace(VAR_SCORE_ADJUSTED, Integer.toString(match.scores[0].adjustedScore));
         localTemplate = localTemplate.replace(VAR_TARGET_TEXT, match.translation);
-		localTemplate = localTemplate.replace(VAR_FUZZY_FLAG, match.fuzzyMark ? (OStrings.getString("MATCHES_FUZZY_MARK") + " ") : "");
-        localTemplate = expandFileName(localTemplate, match.proj, Core.getProject().getProjectProperties().getTMRoot());
-        
+        localTemplate = localTemplate.replace(VAR_FUZZY_FLAG, match.fuzzyMark ? (OStrings.getString("MATCHES_FUZZY_MARK") + " ") : "");
+        ProjectProperties props = Core.getProject().getProjectProperties();
+        if (props != null) {
+            localTemplate = expandFileNames(localTemplate, match.projs, props.getTMRoot());
+        }
         return localTemplate;
     }
     
@@ -194,7 +223,7 @@ public class MatchesVarExpansion extends VarExpansion<NearString> {
             R.text = expandProperties(R.text, match.props);
         } else {
             R.text = R.text.replaceAll(patternSingleProperty.pattern(), "");
-            R.text = R.text.replaceAll(patternPropertyGroup.pattern(), "");            
+            R.text = R.text.replaceAll(patternPropertyGroup.pattern(), "");
         }
 
         styledComponents.put(R.text.indexOf(VAR_SOURCE_TEXT), sourceTextReplacer);

@@ -6,7 +6,7 @@
  Copyright (C) 2000-2006 Keith Godfrey and Maxym Mykhalchuk
                2009 Martin Fleurke, Alex Buloichik, Didier Briel
                2012 Aaron Madlon-Kay
-               2013 Kyle Katarn
+               2013 Kyle Katarn, Aaron Madlon-Kay
                Home page: http://www.omegat.org/
                Support center: http://groups.yahoo.com/group/OmegaT/
 
@@ -52,9 +52,9 @@ import org.omegat.core.data.ProjectProperties;
 import org.omegat.core.data.RealProject;
 import org.omegat.core.data.SourceTextEntry;
 import org.omegat.core.data.TMXEntry;
+import org.omegat.core.tagvalidation.ErrorReport;
 import org.omegat.filters2.master.PluginUtils;
 import org.omegat.gui.main.ProjectUICommands;
-import org.omegat.gui.tagvalidation.ErrorReport;
 import org.omegat.util.Log;
 import org.omegat.util.OConsts;
 import org.omegat.util.OStrings;
@@ -174,15 +174,19 @@ public class Main {
         switch (runMode) {
         case GUI:
             runGUI();
+            // GUI has own shutdown code
             break;
         case CONSOLE_TRANSLATE:
             runConsoleTranslate();
+            PluginUtils.unloadPlugins();
             break;
         case CONSOLE_CREATEPSEUDOTRANSLATETMX:
             runCreatePseudoTranslateTMX();
+            PluginUtils.unloadPlugins();
             break;
         case CONSOLE_ALIGN:
             runConsoleAlign();
+            PluginUtils.unloadPlugins();
             break;
         }
     }
@@ -233,6 +237,16 @@ public class Main {
         } catch (Throwable ex) {
             Log.log(ex);
             showError(ex);
+        }
+
+        if (!Core.getPluginsLoadingErrors().isEmpty()) {
+            String err = "";
+            for (int i = 0; i < Core.getPluginsLoadingErrors().size(); i++) {
+                err += "\n" + Core.getPluginsLoadingErrors().get(i);
+            }
+            err = err.substring(1);
+            JOptionPane.showMessageDialog(JOptionPane.getRootFrame(), err,
+                    OStrings.getString("STARTUP_ERRORBOX_TITLE"), JOptionPane.ERROR_MESSAGE);
         }
 
         CoreEvents.fireApplicationStartup();
@@ -359,10 +373,10 @@ public class Main {
             for (SourceTextEntry ste : entries) {
                 switch (pseudoTranslateType) {
                 case EQUAL:
-                    data.put(ste.getSrcText(), new TMXEntry(ste.getSrcText(), ste.getSrcText(), null, 0, null, true));
+                    data.put(ste.getSrcText(), new TMXEntry(ste.getSrcText(), ste.getSrcText(), true));
                     break;
                 case EMPTY:
-                    data.put(ste.getSrcText(), new TMXEntry(ste.getSrcText(), "", null, 0, null, true));
+                    data.put(ste.getSrcText(), new TMXEntry(ste.getSrcText(), "", true));
                     break;
                 }
             }
@@ -448,9 +462,14 @@ public class Main {
         }
 
         RealProject p = new RealProject(projectProperties);
-        if (loadProject)
+        if (loadProject) {
             p.loadProject(true);
-        Core.setProject(p);
+            if (p.isProjectLoaded()) {
+                Core.setProject(p);
+            }
+        } else {
+            Core.setProject(p);
+        }
         return p;
     }
 
