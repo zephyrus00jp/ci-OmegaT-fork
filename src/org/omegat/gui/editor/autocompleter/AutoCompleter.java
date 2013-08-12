@@ -42,7 +42,6 @@ import javax.swing.text.BadLocationException;
 
 import org.omegat.tokenizer.ITokenizer;
 import org.omegat.gui.editor.EditorTextArea3;
-import org.omegat.gui.editor.TagAutoCompleterView;
 import org.omegat.util.Log;
 import org.omegat.util.OStrings;
 import org.omegat.util.StaticUtils;
@@ -88,7 +87,7 @@ public class AutoCompleter {
         // add any views here
         //views.add(new GlossaryAutoCompleterView(this));
         //views.add(new AutotextAutoCompleterView(this));
-        views.add(new TagAutoCompleterView(this));
+        //views.add(new TagAutoCompleterView(this));
         
         this.editor = editor; 
         

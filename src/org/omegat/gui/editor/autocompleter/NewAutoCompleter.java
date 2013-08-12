@@ -32,11 +32,14 @@ import java.awt.event.KeyEvent;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
+
 import org.omegat.gui.editor.EditorTextArea3;
+import org.omegat.gui.editor.TagAutoCompleterView;
 import org.omegat.gui.editor.autotext.AutotextAutoCompleterView;
 import org.omegat.gui.editor.chartable.CharTableAutoCompleterView;
 import org.omegat.gui.glossary.GlossaryAutoCompleterView;
@@ -92,6 +95,7 @@ public class NewAutoCompleter {
         views.add(new GlossaryAutoCompleterView(this));
         views.add(new AutotextAutoCompleterView(this));
         views.add(new CharTableAutoCompleterView(this));
+        views.add(new TagAutoCompleterView(this));
 
         viewLabel = new JLabel();
         popup.setBorder(BorderFactory.createLineBorder(Color.black)); 
