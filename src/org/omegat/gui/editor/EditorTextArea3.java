@@ -60,7 +60,7 @@ import javax.swing.text.ViewFactory;
 
 import org.omegat.core.CoreEvents;
 import org.omegat.core.data.SourceTextEntry;
-import org.omegat.gui.editor.autocompleter.NewAutoCompleter;
+import org.omegat.gui.editor.autocompleter.AutoCompleter;
 import org.omegat.util.PatternConsts;
 import org.omegat.util.StaticUtils;
 import org.omegat.util.StringUtil;
@@ -87,7 +87,7 @@ public class EditorTextArea3 extends JEditorPane {
     protected String currentWord;
 
     //protected AutoCompleter autoCompleter = new AutoCompleter(this);
-    protected NewAutoCompleter autoCompleter = new NewAutoCompleter(this);
+    protected AutoCompleter autoCompleter = new AutoCompleter(this);
     
     public EditorTextArea3(EditorController controller) {
         this.controller = controller;

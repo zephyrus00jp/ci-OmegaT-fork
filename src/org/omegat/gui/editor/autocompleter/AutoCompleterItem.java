@@ -31,9 +31,9 @@ package org.omegat.gui.editor.autocompleter;
  * inserted into the translation.
  * <p>
  * Additional information such as comments, source terms, etc.
- * can be stored in <code>extras</code>. The {@link AutoCompleterView}
+ * can be stored in <code>extras</code>. The {@link AutoCompleterListView}
  * that created the AutoCompleterItem should know how to use these
- * values appropriately in its {@link AutoCompleterView#itemToString(AutoCompleterItem)}
+ * values appropriately in its {@link AutoCompleterListView#itemToString(AutoCompleterItem)}
  * method.
  * 
  * @author Aaron Madlon-Kay

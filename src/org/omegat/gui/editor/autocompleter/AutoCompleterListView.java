@@ -55,7 +55,7 @@ public abstract class AutoCompleterListView extends AbstractAutoCompleterView {
     private static AutoCompleterItem NO_SUGGESTIONS = new AutoCompleterItem(
             OStrings.getString("AC_NO_SUGGESTIONS"), null);
     
-    public AutoCompleterListView(String name, NewAutoCompleter completer) {
+    public AutoCompleterListView(String name, AutoCompleter completer) {
         super(name,completer);        
         getList().setFocusable( false ); 
     }

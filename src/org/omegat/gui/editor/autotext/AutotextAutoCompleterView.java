@@ -33,7 +33,7 @@ import java.util.List;
 import org.omegat.core.Core;
 import org.omegat.gui.editor.autocompleter.AutoCompleterItem;
 import org.omegat.gui.editor.autocompleter.AutoCompleterListView;
-import org.omegat.gui.editor.autocompleter.NewAutoCompleter;
+import org.omegat.gui.editor.autocompleter.AutoCompleter;
 import org.omegat.tokenizer.DefaultTokenizer;
 import org.omegat.tokenizer.ITokenizer;
 import org.omegat.util.OStrings;
@@ -45,7 +45,7 @@ import org.omegat.util.Preferences;
  */
 public class AutotextAutoCompleterView extends AutoCompleterListView {
 
-    public AutotextAutoCompleterView(NewAutoCompleter completer) {
+    public AutotextAutoCompleterView(AutoCompleter completer) {
         super(OStrings.getString("AC_AUTOTEXT_VIEW"), completer);
     }
             

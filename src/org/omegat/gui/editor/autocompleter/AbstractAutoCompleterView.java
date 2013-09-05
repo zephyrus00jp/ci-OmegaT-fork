@@ -49,14 +49,14 @@ abstract public class AbstractAutoCompleterView {
     /**
      * the completer
      */
-    protected NewAutoCompleter completer;
+    protected AutoCompleter completer;
     
     /**
      * Creates a new auto-completer view.
      * @param name the name of this view
      * @param completer the completer it belongs to
      */
-    public AbstractAutoCompleterView(String name, NewAutoCompleter completer) {
+    public AbstractAutoCompleterView(String name, AutoCompleter completer) {
         this.name = name;
         this.completer = completer;
     }
@@ -152,6 +152,6 @@ abstract public class AbstractAutoCompleterView {
      */
     protected int getModifiedRowCount() {
         int rowCount = getRowCount();
-        return rowCount < NewAutoCompleter.pageRowCount ? rowCount : NewAutoCompleter.pageRowCount;
+        return rowCount < AutoCompleter.pageRowCount ? rowCount : AutoCompleter.pageRowCount;
     }
 }

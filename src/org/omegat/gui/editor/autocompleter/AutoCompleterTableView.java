@@ -46,7 +46,7 @@ public abstract class AutoCompleterTableView extends AbstractAutoCompleterView {
     /** the selected point - x: row, y: column. */
     private Point selected;
     
-    public AutoCompleterTableView(String name, NewAutoCompleter completer) {
+    public AutoCompleterTableView(String name, AutoCompleter completer) {
         super(name,completer);
     }
     
@@ -230,8 +230,8 @@ public abstract class AutoCompleterTableView extends AbstractAutoCompleterView {
         Point p = getSelectionPoint();
         
         int size = getTable().getModel().getRowCount();
-        if (p.y < size - NewAutoCompleter.pageRowCount) { 
-            setSelection(new Point(p.x, p.y+NewAutoCompleter.pageRowCount));
+        if (p.y < size - AutoCompleter.pageRowCount) { 
+            setSelection(new Point(p.x, p.y+AutoCompleter.pageRowCount));
         } else {
             setSelection(new Point(p.x, size-1));
         }
@@ -267,8 +267,8 @@ public abstract class AutoCompleterTableView extends AbstractAutoCompleterView {
     protected void selectPreviousPossibleValueByPage() { 
         Point p = getSelectionPoint();
         
-        if (p.y > NewAutoCompleter.pageRowCount) {
-            setSelection(new Point(p.x, p.y - NewAutoCompleter.pageRowCount));
+        if (p.y > AutoCompleter.pageRowCount) {
+            setSelection(new Point(p.x, p.y - AutoCompleter.pageRowCount));
         } else { 
             setSelection(new Point(p.x, 0));
         } 
