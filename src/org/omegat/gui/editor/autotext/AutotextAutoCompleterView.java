@@ -29,10 +29,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+
 import org.omegat.core.Core;
 import org.omegat.gui.editor.autocompleter.AutoCompleterItem;
 import org.omegat.gui.editor.autocompleter.AutoCompleterListView;
 import org.omegat.gui.editor.autocompleter.NewAutoCompleter;
+import org.omegat.tokenizer.DefaultTokenizer;
+import org.omegat.tokenizer.ITokenizer;
 import org.omegat.util.OStrings;
 import org.omegat.util.Preferences;
 
@@ -57,6 +60,14 @@ public class AutotextAutoCompleterView extends AutoCompleterListView {
                 result.add(new AutoCompleterItem(s.target,
                     new String[] { s.source, s.comment }));
             }
+        }
+        
+        if (!Core.getProject().getProjectProperties().getTargetLanguage().isSpaceDelimited()
+                && result.size() == 0) {
+            for (AutotextPair s : Core.getAutoText().getList()) {
+                result.add(new AutoCompleterItem(s.target, new String[] { s.source, s.comment }));
+            }
+            completer.adjustInsertionPoint(wordChunk.length());
         }
         
         Collections.sort(result, new AutotextComparator());
@@ -106,5 +117,10 @@ public class AutotextAutoCompleterView extends AutoCompleterListView {
             
             return 0;
         }
+    }
+    
+    @Override
+    public ITokenizer getTokenizer() {
+        return new DefaultTokenizer();
     }
 }
