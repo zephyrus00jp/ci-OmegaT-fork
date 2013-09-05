@@ -27,10 +27,13 @@ package org.omegat.gui.editor.chartable;
 
 import java.awt.Color;
 import java.awt.Point;
+
 import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableCellRenderer;
+
 import org.omegat.gui.editor.autocompleter.AutoCompleterTableView;
 import org.omegat.gui.editor.autocompleter.NewAutoCompleter;
+import org.omegat.util.OStrings;
 import org.omegat.util.Preferences;
 
 /**
@@ -44,7 +47,7 @@ public class CharTableAutoCompleterView extends AutoCompleterTableView {
     DefaultTableCellRenderer renderer;
     
     public CharTableAutoCompleterView(NewAutoCompleter ac) {
-        super("Character table",ac);
+        super(OStrings.getString("AC_CHARTABLE_VIEW"),ac);
         model = new CharTableModel(null);
         getTable().setModel(model);
         getTable().setShowGrid(true);
@@ -80,14 +83,11 @@ public class CharTableAutoCompleterView extends AutoCompleterTableView {
     @Override
     public void activateView() {
         updateModel();
-        super.activateView(); //To change body of generated methods, choose Tools | Templates.
+        super.activateView();
     }
 
     @Override
     public void setSelection(Point p) {
-        super.setSelection(model.modifyPoint(p)); //To change body of generated methods, choose Tools | Templates.
+        super.setSelection(model.modifyPoint(p));
     }
-    
-    
-    
 }
