@@ -28,11 +28,13 @@ import java.awt.Component;
 import java.awt.Point;
 import java.awt.event.KeyEvent;
 import java.util.List;
+
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
 import javax.swing.ListModel;
 import javax.swing.text.BadLocationException;
+
 import org.omegat.gui.editor.EditorTextArea3;
 import org.omegat.tokenizer.ITokenizer;
 import org.omegat.util.OStrings;
@@ -101,63 +103,45 @@ public abstract class AutoCompleterListView extends AbstractAutoCompleterView {
         return false;
     } 
     
-       /** 
-     * Selects the next item in the list.  It won't change the selection if the 
-     * currently selected item is already the last item. 
+    /** 
+     * Selects the next item in the list.
      */ 
     protected void selectNextPossibleValue() { 
-        int si = getList().getSelectedIndex(); 
- 
-        if (si < getList().getModel().getSize() - 1) { 
-            getList().setSelectedIndex(si + 1); 
-            getList().ensureIndexIsVisible(si + 1); 
-        } 
+        int i = (getList().getSelectedIndex() + 1) % getList().getModel().getSize();
+        getList().setSelectedIndex(i); 
+        getList().ensureIndexIsVisible(i); 
     } 
     
-       /** 
-     * Selects the item in the list following the current one by completer.pageRowCount items or go to the first item. 
-     * currently selected item is already the last item. 
+    /** 
+     * Selects the item in the list following the current one by one page, or the last item if
+     * there is less than one page following. 
      */ 
     protected void selectNextPossibleValueByPage() { 
-        int si = getList().getSelectedIndex(); 
- 
-        int size = getList().getModel().getSize();
-        if (si < size - completer.pageRowCount) { 
-            getList().setSelectedIndex(si + completer.pageRowCount); 
-            getList().ensureIndexIsVisible(si + completer.pageRowCount); 
-        } else {
-            getList().setSelectedIndex(size-1);
-            getList().ensureIndexIsVisible(size-1);
-        }
+        int page = getList().getLastVisibleIndex() - getList().getFirstVisibleIndex();
+        int i = Math.min(getList().getSelectedIndex() + page, getList().getModel().getSize() - 1);
+        getList().setSelectedIndex(i);
+        getList().ensureIndexIsVisible(i);
     } 
 
     /** 
-     * Selects the previous item in the list.  It won't change the selection if the 
-     * currently selected item is already the first item. 
+     * Selects the previous item in the list.
      */ 
     protected void selectPreviousPossibleValue() { 
-        int si = getList().getSelectedIndex(); 
-
-        if (si > 0) { 
-            getList().setSelectedIndex(si - 1); 
-            getList().ensureIndexIsVisible(si - 1); 
-        } 
+        int size = getList().getModel().getSize();
+        int i = (getList().getSelectedIndex() - 1 + size) % size;
+        getList().setSelectedIndex(i); 
+        getList().ensureIndexIsVisible(i); 
     } 
     
     /** 
-     * Selects the item in the list preceding the current one by completer.pageRowCount items or go to the first item.  It won't change the selection if the 
-     * currently selected item is already the first item. 
+     * Selects the item in the list preceding the current one by one page, or the first item if
+     * there is less than one page preceding. 
      */ 
     protected void selectPreviousPossibleValueByPage() { 
-        int si = getList().getSelectedIndex(); 
-
-        if (si > completer.pageRowCount) {
-            getList().setSelectedIndex(si - completer.pageRowCount); 
-            getList().ensureIndexIsVisible(si - completer.pageRowCount); 
-        } else { 
-            getList().setSelectedIndex(0); 
-            getList().ensureIndexIsVisible(0); 
-        } 
+        int page = getList().getLastVisibleIndex() - getList().getFirstVisibleIndex();
+        int i = Math.max(getList().getSelectedIndex() - page, 0);
+        getList().setSelectedIndex(i);
+        getList().ensureIndexIsVisible(i);
     }
 
     @Override
