@@ -47,11 +47,13 @@ import org.omegat.util.OStrings;
 import org.omegat.util.StaticUtils;
 
 /**
- *
- * @author bartkoz
+ * The controller part of the auto-completer
+ * 
+ * @author Zoltan Bartko <bartkozoltan@bartkozoltan.com>
+ * @author Aaron Madlon-Kay
  */
 public class NewAutoCompleter {    
-    //JList list = new JList(); 
+    
     JPopupMenu popup = new JPopupMenu(); 
     private EditorTextArea3 editor; 
     
@@ -212,10 +214,6 @@ public class NewAutoCompleter {
             popup.setVisible(false);
         }
         editor.requestFocus(); 
-    }
-    
-    private int getHeight() {
-        return views.get(currentView).getHeight();
     }
     
     /**

@@ -125,7 +125,7 @@ public class AutotextAutoCompleterOptionsDialog extends javax.swing.JDialog {
         loadButton = new javax.swing.JButton();
         saveButton = new javax.swing.JButton();
         jScrollPane2 = new javax.swing.JScrollPane();
-        entryTable = entryTable = new JTable() {
+        entryTable = new JTable() {
             public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
                 Component c = super.prepareRenderer(renderer, row, column);
                 if (c instanceof JComponent) {

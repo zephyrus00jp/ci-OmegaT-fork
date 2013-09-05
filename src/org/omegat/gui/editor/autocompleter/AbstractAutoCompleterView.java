@@ -152,6 +152,6 @@ abstract public class AbstractAutoCompleterView {
      */
     protected int getModifiedRowCount() {
         int rowCount = getRowCount();
-        return rowCount <completer.pageRowCount ? rowCount: completer.pageRowCount;
+        return rowCount < NewAutoCompleter.pageRowCount ? rowCount : NewAutoCompleter.pageRowCount;
     }
 }

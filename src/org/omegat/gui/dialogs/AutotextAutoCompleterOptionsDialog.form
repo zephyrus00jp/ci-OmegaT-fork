@@ -307,7 +307,7 @@
                 </Property>
               </Properties>
               <AuxValues>
-                <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="entryTable = new JTable() {&#xd;&#xa;    public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {&#xd;&#xa;        Component c = super.prepareRenderer(renderer, row, column);&#xd;&#xa;        if (c instanceof JComponent) {&#xd;&#xa;            JComponent jc = (JComponent) c;&#xd;&#xa;            jc.setToolTipText(getValueAt(row, column).toString());&#xd;&#xa;        }&#xd;&#xa;        return c;&#xd;&#xa;    }&#xd;&#xa;};"/>
+                <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new JTable() {&#xd;&#xa;    public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {&#xd;&#xa;        Component c = super.prepareRenderer(renderer, row, column);&#xd;&#xa;        if (c instanceof JComponent) {&#xd;&#xa;            JComponent jc = (JComponent) c;&#xd;&#xa;            jc.setToolTipText(getValueAt(row, column).toString());&#xd;&#xa;        }&#xd;&#xa;        return c;&#xd;&#xa;    }&#xd;&#xa;};"/>
               </AuxValues>
             </Component>
           </SubComponents>
