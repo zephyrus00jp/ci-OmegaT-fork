@@ -52,18 +52,23 @@ public class TagAutoCompleterView extends AutoCompleterListView {
     public List<AutoCompleterItem> computeListData(String wordChunk) {
         
         List<String> missingGroups = TagUtil.getGroupedMissingTagsFromTarget();
-                
+        
+        // If wordChunk is a tag, pretend we have a blank wordChunk.
+        if (TagUtil.getAllTagsInSource().contains(wordChunk)) {
+            completer.adjustInsertionPoint(wordChunk.length());
+            wordChunk = "";
+        }
+        
         // Check for partial matches among missing tag groups.
         List<String> matchGroups = new ArrayList<String>();
         for (String g : missingGroups) {
             if (g.startsWith(wordChunk)) matchGroups.add(g);
         }
         
-        // For non-space-delimited languages, show all missing tags as
-        // suggestions for the case of no matching tags.
+        // For non-space-delimited languages, or if there are no partial matches,
+        // show all missing tags as suggestions.
         if (!Core.getProject().getProjectProperties().getTargetLanguage().isSpaceDelimited()
-                && matchGroups.size() == 0
-                && missingGroups.size() > 0) {
+                || (matchGroups.size() == 0 && missingGroups.size() > 0)) {
             completer.adjustInsertionPoint(wordChunk.length());
             return convertList(missingGroups);
         }
