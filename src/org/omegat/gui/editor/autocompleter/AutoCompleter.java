@@ -204,8 +204,6 @@ public class AutoCompleter {
         if (!isVisible())
             return;
         
-        //popup.setVisible(false); 
-        
         if (editor.isEnabled() && updateViewData() && views.get(currentView).getRowCount()!=0) { 
             Point point = views.get(currentView).getPosition();
             
@@ -252,16 +250,7 @@ public class AutoCompleter {
      * @return the number
      */
     private int nextViewNumber() {
-        if (currentView == -1)
-            return 0;
-        
-        if (views.size() == 1)
-            return currentView;
-        
-        if (currentView + 1 >= views.size()) {
-            return 0;
-        }
-        return currentView + 1;
+        return (currentView + 1) % views.size();
     }
     
     /**
@@ -269,16 +258,7 @@ public class AutoCompleter {
      * @return 
      */
     private int prevViewNumber() {
-        if (currentView == -1)
-            return 0;
-        
-        if (views.size() == 1)
-            return currentView;
-        
-        if (currentView == 0) {
-            return views.size() - 1;
-        }
-        return currentView - 1;
+        return (currentView + views.size() - 1) % views.size();
     }
     
     /**
