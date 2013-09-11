@@ -25,6 +25,7 @@
 
 package org.omegat.gui.editor.autocompleter;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Point;
@@ -37,6 +38,7 @@ import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
+import javax.swing.border.EmptyBorder;
 
 import org.omegat.gui.editor.EditorTextArea3;
 import org.omegat.gui.editor.TagAutoCompleterView;
@@ -100,9 +102,11 @@ public class AutoCompleter {
         views.add(new TagAutoCompleterView(this));
 
         viewLabel = new JLabel();
-        popup.setBorder(BorderFactory.createLineBorder(Color.black)); 
-        popup.add(scroll); 
-        popup.add(viewLabel);
+        viewLabel.setBorder(new EmptyBorder(4, 4, 4, 4));;
+        popup.setBorder(BorderFactory.createLineBorder(Color.black));
+        popup.setLayout(new BorderLayout());
+        popup.add(scroll, BorderLayout.CENTER); 
+        popup.add(viewLabel, BorderLayout.SOUTH);
         selectNextView();
     } 
 
