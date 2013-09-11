@@ -305,7 +305,6 @@ public class AutoCompleter {
         sb.append(OStrings.getString("AC_LABEL_END"));
         
         viewLabel.setText(sb.toString());
-        viewLabel.setPreferredSize(new Dimension(350,50));
     }
 
     /** go to the next view */
