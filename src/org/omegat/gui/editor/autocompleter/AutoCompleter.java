@@ -286,9 +286,10 @@ public class AutoCompleter {
      * Update the view label
      */
     private void updateViewLabel() {
-        StringBuilder sb = new StringBuilder(OStrings.getString("AC_LABEL_START"));
-        sb.append(StaticUtils.format(OStrings.getString("AC_THIS_VIEW"),
-                views.get(currentView).getName()));
+        StringBuilder sb = new StringBuilder("<html>");
+        sb.append("<b>");
+        sb.append(views.get(currentView).getName());
+        sb.append("</b>");
         
         if (views.size() != 1) {
             int modifier = onMac ? KeyEvent.META_MASK : KeyEvent.CTRL_MASK;
@@ -296,18 +297,20 @@ public class AutoCompleter {
             String prevKeyString = keyText(KeyEvent.VK_PAGE_UP, modifier);
             
             if (views.size() >= 2) {
-            sb.append(StaticUtils.format(OStrings.getString("AC_NEXT_VIEW"),
-                    nextKeyString,
-                    views.get(nextViewNumber()).getName()));
+                sb.append("<br>");
+                sb.append(StaticUtils.format(OStrings.getString("AC_NEXT_VIEW"),
+                        nextKeyString,
+                        views.get(nextViewNumber()).getName()));
             }
             
             if (views.size() > 2) {
-            sb.append(StaticUtils.format(OStrings.getString("AC_PREV_VIEW"),
-                    prevKeyString,
-                    views.get(prevViewNumber()).getName()));
+                sb.append("<br>");
+                sb.append(StaticUtils.format(OStrings.getString("AC_PREV_VIEW"),
+                        prevKeyString,
+                        views.get(prevViewNumber()).getName()));
             }
         }
-        sb.append(OStrings.getString("AC_LABEL_END"));
+        sb.append("</html>");
         
         viewLabel.setText(sb.toString());
     }
