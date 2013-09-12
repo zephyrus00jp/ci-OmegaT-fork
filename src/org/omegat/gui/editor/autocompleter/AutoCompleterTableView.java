@@ -80,7 +80,7 @@ public abstract class AutoCompleterTableView extends AbstractAutoCompleterView {
      * @return 
      */
     public Point getSelectionPoint() {
-        return new Point(getTable().getSelectedColumn(),getTable().getSelectedRow());
+        return new Point(getTable().getSelectedColumn(), getTable().getSelectedRow());
     }
     
     @Override
@@ -167,15 +167,14 @@ public abstract class AutoCompleterTableView extends AbstractAutoCompleterView {
     } 
     
     /** 
-     * Selects the next item in the list.  It won't change the selection if the 
-     * currently selected item is already the last item. 
+     * Selects the next item in the list.
      */ 
     protected void selectNextPossibleValueDown() { 
         Point p = getSelectionPoint();
         
-        if (p.y < getTable().getModel().getRowCount()- 1) { 
-            setSelection(new Point(p.x, p.y+1));
-        } 
+        int y = (p.y + 1) % getTable().getModel().getRowCount();
+        
+        setSelection(new Point(p.x, y));
     }
     
     /**
@@ -189,8 +188,8 @@ public abstract class AutoCompleterTableView extends AbstractAutoCompleterView {
      * Select the last value in the table (bottom right).
      */
     protected void selectLastPossibleValue() {
-        setSelection(new Point(getTable().getModel().getColumnCount(), 
-                getTable().getModel().getRowCount()));
+        setSelection(new Point(getTable().getModel().getColumnCount() - 1, 
+                getTable().getModel().getRowCount() - 1));
     }
     
     /**
@@ -204,19 +203,19 @@ public abstract class AutoCompleterTableView extends AbstractAutoCompleterView {
      * Select the last value in the current line.
      */
     protected void selectLastPossibleValueInLine() {
-        setSelection(new Point(getTable().getModel().getColumnCount()-1, 
+        setSelection(new Point(getTable().getModel().getColumnCount() - 1, 
                 getTable().getSelectedRow()));
     }
     
     /**
-     * Go one cell to the right. No line wrapping is being done.
+     * Go one cell to the right.
      */
     protected void selectNextPossibleValueRight() { 
         Point p = getSelectionPoint();
         
-        if (p.x < getTable().getModel().getColumnCount()- 1) { 
-            setSelection(new Point(p.x+1, p.y));
-        } 
+        int x = (p.x + 1) % getTable().getModel().getColumnCount();
+        
+        setSelection(new Point(x, p.y));
     }
     
     /** 
@@ -227,34 +226,33 @@ public abstract class AutoCompleterTableView extends AbstractAutoCompleterView {
         Point p = getSelectionPoint();
         
         int size = getTable().getModel().getRowCount();
-        if (p.y < size - AutoCompleter.pageRowCount) { 
-            setSelection(new Point(p.x, p.y+AutoCompleter.pageRowCount));
-        } else {
-            setSelection(new Point(p.x, size-1));
-        }
-    } 
+        setSelection(new Point(
+                p.x,
+                Math.min(p.y + AutoCompleter.pageRowCount, size - 1)));
+    }
 
     /** 
-     * Selects the previous item in the list.  It won't change the selection if the 
-     * currently selected item is already the first item. 
+     * Selects the previous item in the list.
      */ 
     protected void selectPreviousPossibleValueUp() { 
         Point p = getSelectionPoint();
         
-        if (p.y > 0) { 
-            setSelection(new Point(p.x, p.y-1));
-        } 
+        int size = getTable().getModel().getRowCount();
+        int y = (p.y - 1 + size) % size;
+        
+        setSelection(new Point(p.x, y));
     } 
     
     /**
-     * Go one cell to the left. No line wrapping is being done.
+     * Go one cell to the left.
      */
     protected void selectPreviousPossibleValueLeft() { 
         Point p = getSelectionPoint();
         
-        if (p.x > 0) { 
-            setSelection(new Point(p.x-1, p.y));
-        } 
+        int size = getTable().getModel().getColumnCount();
+        int x = (p.x - 1 + size) % size;
+        
+        setSelection(new Point(x, p.y));
     }
     
     /** 
@@ -264,11 +262,9 @@ public abstract class AutoCompleterTableView extends AbstractAutoCompleterView {
     protected void selectPreviousPossibleValueByPage() { 
         Point p = getSelectionPoint();
         
-        if (p.y > AutoCompleter.pageRowCount) {
-            setSelection(new Point(p.x, p.y - AutoCompleter.pageRowCount));
-        } else { 
-            setSelection(new Point(p.x, 0));
-        } 
+        setSelection(new Point(
+                p.x,
+                Math.max(p.y - AutoCompleter.pageRowCount, 0)));
     }
 
     @Override
