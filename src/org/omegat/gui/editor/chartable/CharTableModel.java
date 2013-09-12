@@ -3,7 +3,7 @@
           with fuzzy matching, translation memory, keyword search, 
           glossaries, and translation leveraging into updated projects.
 
- Copyright (C) 2013 Zoltan Bartko
+ Copyright (C) 2013 Zoltan Bartko, Aaron Madlon-Kay
                Home page: http://www.omegat.org/
                Support center: http://groups.yahoo.com/group/OmegaT/
 
@@ -27,12 +27,15 @@ package org.omegat.gui.editor.chartable;
 
 import java.awt.Font;
 import java.awt.Point;
+
 import javax.swing.table.AbstractTableModel;
 
 /**
  * Character table table model
  * @author bartkoz
+ * @author Aaron Madlon-Kay
  */
+@SuppressWarnings("serial")
 public class CharTableModel extends AbstractTableModel {
     Font font;
     
@@ -79,6 +82,10 @@ public class CharTableModel extends AbstractTableModel {
      * leave only unique characters in the data string.
      */
     public void allowOnlyUnique() {
+        if (data == null) {
+            return;
+        }
+        
         StringBuilder temp = new StringBuilder();
         for (int i = 0; i < data.length(); i++) {
             if (temp.indexOf(data.substring(i,i+1)) == -1) {

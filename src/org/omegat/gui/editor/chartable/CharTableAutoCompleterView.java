@@ -74,7 +74,10 @@ public class CharTableAutoCompleterView extends AutoCompleterTableView {
     public void updateModel() {
         String input = null;
         if (Preferences.isPreference(Preferences.AC_CHARTABLE_USE_CUSTOM_CHARS)) {
-            input = Preferences.getPreference(Preferences.AC_CHARTABLE_CUSTOM_CHAR_STRING);
+            String customChars = Preferences.getPreference(Preferences.AC_CHARTABLE_CUSTOM_CHAR_STRING);
+            if (!customChars.isEmpty()) {
+                input = customChars;
+            }
         }
         
         if (model.setData(input)) {
