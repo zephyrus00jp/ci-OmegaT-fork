@@ -39,12 +39,14 @@ import javax.swing.JLabel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.border.EmptyBorder;
+import javax.swing.text.BadLocationException;
 
 import org.omegat.gui.editor.EditorTextArea3;
 import org.omegat.gui.editor.TagAutoCompleterView;
 import org.omegat.gui.editor.autotext.AutotextAutoCompleterView;
 import org.omegat.gui.editor.chartable.CharTableAutoCompleterView;
 import org.omegat.gui.glossary.GlossaryAutoCompleterView;
+import org.omegat.util.Log;
 import org.omegat.util.OStrings;
 import org.omegat.util.StaticUtils;
 
@@ -205,17 +207,36 @@ public class AutoCompleter {
             return;
         
         if (editor.isEnabled() && updateViewData() && views.get(currentView).getRowCount()!=0) { 
-            Point point = views.get(currentView).getPosition();
-            
-            scroll.setPreferredSize(new Dimension(scroll.getPreferredSize().width, 
-                    views.get(currentView).getHeight()));
+            scroll.setPreferredSize(new Dimension(
+                    scroll.getPreferredSize().width,
+                    views.get(currentView).getPreferredHeight()));
             popup.validate();
             popup.pack();
-            popup.show(editor, point.x, point.y);
+            Point p = getDisplayPoint();
+            popup.show(editor, p.x, p.y);
         } else {
             popup.setVisible(false);
         }
         editor.requestFocus(); 
+    }
+    
+    /**
+     * Determine the x,y coordinate at which to place the popup.
+     */
+    private Point getDisplayPoint() {
+        int x = 0;
+        int y = editor.getHeight();
+        int fontSize = editor.getFont().getSize();
+        try {
+            int pos = Math.min(editor.getCaret().getDot(), editor.getCaret().getMark());
+            x = editor.getUI().modelToView(editor, pos).x;
+            y = editor.getUI().modelToView(editor, editor.getCaret().getDot()).y
+                    + fontSize;
+        } catch(BadLocationException e) {
+            // this should never happen!!!
+            Log.log(e);
+        }
+        return new Point(x, y);
     }
     
     /**
@@ -299,7 +320,7 @@ public class AutoCompleter {
 
     /** activate the current view */
     private void activateView() {
-        views.get(currentView).activateView();
+        scroll.setViewportView(views.get(currentView).getViewContent());
         updateViewLabel();
         updatePopup();
     }
@@ -360,9 +381,5 @@ public class AutoCompleter {
      */
     public void setWordChunkStart(int wordChunkStart) {
         this.wordChunkStart = wordChunkStart;
-    }
-    
-    public JScrollPane getScrollPane() {
-        return scroll;
     }
 }

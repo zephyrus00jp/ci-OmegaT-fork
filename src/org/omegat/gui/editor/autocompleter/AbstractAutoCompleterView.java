@@ -3,7 +3,7 @@
           with fuzzy matching, translation memory, keyword search, 
           glossaries, and translation leveraging into updated projects.
 
- Copyright (C) 2013 Zoltan Bartko
+ Copyright (C) 2013 Zoltan Bartko, Aaron Madlon-Kay
                Home page: http://www.omegat.org/
                Support center: http://groups.yahoo.com/group/OmegaT/
 
@@ -25,19 +25,17 @@
 
 package org.omegat.gui.editor.autocompleter;
 
-import java.awt.Dimension;
-import java.awt.Point;
+import java.awt.Component;
 import java.awt.event.KeyEvent;
 import java.util.List;
-import javax.swing.text.BadLocationException;
+
 import org.omegat.core.Core;
-import org.omegat.gui.editor.EditorTextArea3;
 import org.omegat.tokenizer.ITokenizer;
-import org.omegat.util.Log;
 
 /**
  * An abstract auto-completer view.
  * @author bartkoz
+ * @author Aaron Madlon-Kay
  */
 abstract public class AbstractAutoCompleterView {
 
@@ -91,33 +89,10 @@ abstract public class AbstractAutoCompleterView {
     public abstract int getRowCount();
     
     /**
-     * get the height of the component
+     * get the preferred height of the component
      * @return 
      */
-    public abstract int getHeight();
-
-    /**
-     * get the position of the view popup
-     * @return the point, where it should be displayed
-     */
-    public Point getPosition() {
-        EditorTextArea3 editor = completer.getEditor();
-        
-        int x = 0; 
-        int y = editor.getHeight();
-        int fontSize = editor.getFont().getSize();
-        try { 
-            int pos = Math.min(editor.getCaret().getDot(), editor.getCaret().getMark()); 
-            x = editor.getUI().modelToView(editor, pos).x; 
-            y = editor.getUI().modelToView(editor, editor.getCaret().getDot()).y
-                    + fontSize;
-        } catch(BadLocationException e) { 
-            // this should never happen!!! 
-            Log.log(e);
-        }
-        
-        return new Point(x,y);
-    }
+    public abstract int getPreferredHeight();
     
     /**
      * set the list or table data
@@ -138,12 +113,13 @@ abstract public class AbstractAutoCompleterView {
     public abstract boolean updateViewData();
     
     /**
-     * Activate the view.
+     * Obtain the content to put in the autocompleter popup.
+     * The view should also do any other preparation necessary for
+     * display.
+     * 
+     * @return the component to show in the autocompleter popup
      */
-    public void activateView() {
-        completer.getScrollPane().setPreferredSize(
-                new Dimension(completer.getScrollPane().getPreferredSize().width, getHeight()));
-    }
+    public abstract Component getViewContent();
     
     /**
      * Return a modified row count. The basic implementation. Override this in the
@@ -151,7 +127,6 @@ abstract public class AbstractAutoCompleterView {
      * @return a modified row count.
      */
     protected int getModifiedRowCount() {
-        int rowCount = getRowCount();
-        return rowCount < AutoCompleter.pageRowCount ? rowCount : AutoCompleter.pageRowCount;
+        return Math.min(getRowCount(), AutoCompleter.pageRowCount);
     }
 }

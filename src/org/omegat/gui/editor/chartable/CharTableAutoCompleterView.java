@@ -3,7 +3,7 @@
           with fuzzy matching, translation memory, keyword search, 
           glossaries, and translation leveraging into updated projects.
 
- Copyright (C) 2013 Zoltan Bartko
+ Copyright (C) 2013 Zoltan Bartko, Aaron Madlon-Kay
                Home page: http://www.omegat.org/
                Support center: http://groups.yahoo.com/group/OmegaT/
 
@@ -39,6 +39,7 @@ import org.omegat.util.Preferences;
 /**
  * Character table auto-completer view.
  * @author bartkoz
+ * @author Aaron Madlon-Kay
  */
 public class CharTableAutoCompleterView extends AutoCompleterTableView {
 
@@ -47,14 +48,14 @@ public class CharTableAutoCompleterView extends AutoCompleterTableView {
     DefaultTableCellRenderer renderer;
     
     public CharTableAutoCompleterView(AutoCompleter ac) {
-        super(OStrings.getString("AC_CHARTABLE_VIEW"),ac);
+        super(OStrings.getString("AC_CHARTABLE_VIEW"), ac);
         model = new CharTableModel(null);
         getTable().setModel(model);
         getTable().setShowGrid(true);
         getTable().setGridColor(Color.gray);
-        ac.getScrollPane().setColumnHeaderView(null);
         renderer = (DefaultTableCellRenderer) getTable().getDefaultRenderer(getTable().getColumnClass(0));
-        renderer.setHorizontalAlignment(SwingConstants.CENTER);        
+        renderer.setHorizontalAlignment(SwingConstants.CENTER);
+        setSelection(new Point(0, 0));
     }
 
     @Override
@@ -76,14 +77,9 @@ public class CharTableAutoCompleterView extends AutoCompleterTableView {
             input = Preferences.getPreference(Preferences.AC_CHARTABLE_CUSTOM_CHAR_STRING);
         }
         
-        if (model.setData(input))
+        if (model.setData(input)) {
             setSelection(new Point(0,0));
-    }
-    
-    @Override
-    public void activateView() {
-        updateModel();
-        super.activateView();
+        }
     }
 
     @Override

@@ -3,7 +3,7 @@
           with fuzzy matching, translation memory, keyword search, 
           glossaries, and translation leveraging into updated projects.
 
- Copyright (C) 2013 Zoltan Bartko
+ Copyright (C) 2013 Zoltan Bartko, Aaron Madlon-Kay
                Home page: http://www.omegat.org/
                Support center: http://groups.yahoo.com/group/OmegaT/
 
@@ -25,7 +25,6 @@
 package org.omegat.gui.editor.autocompleter;
 
 import java.awt.Component;
-import java.awt.Point;
 import java.awt.event.KeyEvent;
 import java.util.List;
 
@@ -45,10 +44,12 @@ import org.omegat.util.Token;
  * A list based auto-completer view.
  * 
  * @author bartkoz
+ * @author Aaron Madlon-Kay
  */
 public abstract class AutoCompleterListView extends AbstractAutoCompleterView {
     
     private static JList list;
+    private static CellRenderer renderer;
 
     ListModel listModel = new DefaultListModel();
     
@@ -56,14 +57,16 @@ public abstract class AutoCompleterListView extends AbstractAutoCompleterView {
             OStrings.getString("AC_NO_SUGGESTIONS"), null);
     
     public AutoCompleterListView(String name, AutoCompleter completer) {
-        super(name,completer);        
-        getList().setFocusable( false ); 
+        super(name,completer);
+        getList().setFocusable(false);
     }
     
     public JList getList() {
         if (list == null) {
             list = new JList();
             list.setFixedCellHeight(12);
+            renderer = new CellRenderer(this);
+            list.setCellRenderer(renderer);
         }
         return list;
     }
@@ -150,16 +153,9 @@ public abstract class AutoCompleterListView extends AbstractAutoCompleterView {
     }
     
     @Override
-    public int getHeight() {
+    public int getPreferredHeight() {
         int height = getModifiedRowCount() * getList().getFont().getSize();
-        height = height < 50 ? 50 : height;
-        return height;
-    }
-    
-    @Override
-    public Point getPosition() {
-        getList().setVisibleRowCount(getModifiedRowCount()); 
-        return super.getPosition();
+        return Math.max(height, 50);
     }
     
     @Override
@@ -177,10 +173,10 @@ public abstract class AutoCompleterListView extends AbstractAutoCompleterView {
     }
     
     @Override
-    public void activateView() {
-        completer.getScrollPane().setViewportView(getList());
-        list.setCellRenderer(new CellRenderer(this));
-        super.activateView();
+    public Component getViewContent() {
+        renderer.view = this;
+        getList().setVisibleRowCount(getModifiedRowCount());
+        return getList();
     }
     
     @Override

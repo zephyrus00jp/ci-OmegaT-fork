@@ -3,7 +3,7 @@
           with fuzzy matching, translation memory, keyword search, 
           glossaries, and translation leveraging into updated projects.
 
- Copyright (C) 2013 Zoltan Bartko
+ Copyright (C) 2013 Zoltan Bartko, Aaron Madlon-Kay
                Home page: http://www.omegat.org/
                Support center: http://groups.yahoo.com/group/OmegaT/
 
@@ -25,16 +25,20 @@
 
 package org.omegat.gui.editor.autocompleter;
 
+import java.awt.Component;
 import java.awt.Point;
 import java.awt.event.KeyEvent;
 import java.util.List;
+
 import javax.swing.JTable;
+
 import org.omegat.util.StaticUtils;
 
 /**
  * Table-based auto-completer view
  * 
  * @author bartkoz
+ * @author Aaron Madlon-Kay
  */
 public abstract class AutoCompleterTableView extends AbstractAutoCompleterView {
     
@@ -43,11 +47,9 @@ public abstract class AutoCompleterTableView extends AbstractAutoCompleterView {
      */
     private static JTable table;
     
-    /** the selected point - x: row, y: column. */
-    private Point selected;
-    
     public AutoCompleterTableView(String name, AutoCompleter completer) {
         super(name,completer);
+        getTable().changeSelection(0, 0, false, false);
     }
     
     /**
@@ -56,7 +58,6 @@ public abstract class AutoCompleterTableView extends AbstractAutoCompleterView {
      */
     public void setSelection(Point p) {
         getTable().changeSelection(p.y, p.x, false, false);
-        selected = p;
     }
     
     public JTable getTable() {
@@ -70,12 +71,8 @@ public abstract class AutoCompleterTableView extends AbstractAutoCompleterView {
     }
     
     @Override
-    public void activateView() {
-        completer.getScrollPane().setViewportView(getTable());
-        if (selected == null) {
-            setSelection(new Point(0,0));
-        }
-        super.activateView();
+    public Component getViewContent() {
+        return getTable();
     }
     
     /**
@@ -280,10 +277,9 @@ public abstract class AutoCompleterTableView extends AbstractAutoCompleterView {
     }
     
     @Override
-    public int getHeight() {
+    public int getPreferredHeight() {
         int height = getModifiedRowCount() * getTable().getRowHeight();
-        height = height < 50 ? 50 : height;
-        return height;
+        return Math.max(height, 50);
     }
     
     @Override
