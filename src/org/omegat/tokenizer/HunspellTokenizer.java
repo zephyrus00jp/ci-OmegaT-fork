@@ -54,8 +54,8 @@ import org.omegat.util.Preferences;
 @Tokenizer(languages = { Tokenizer.DISCOVER_AT_RUNTIME })
 public class HunspellTokenizer extends BaseTokenizer {
 
-    private static Map<Language, File> AFFIX_FILES = new HashMap<Language, File>();
-    private static Map<Language, File> DICTIONARY_FILES = new HashMap<Language, File>();
+    private static Map<Language, File> AFFIX_FILES;
+    private static Map<Language, File> DICTIONARY_FILES;
     
     private HunspellDictionary dict;
     
@@ -69,6 +69,10 @@ public class HunspellTokenizer extends BaseTokenizer {
             language = Core.getProject().getProjectProperties().getSourceLanguage();
         else
             language = Core.getProject().getProjectProperties().getTargetLanguage();
+        
+        if (AFFIX_FILES == null || DICTIONARY_FILES == null) {
+            populateInstalledDicts();
+        }
         
         File affixFile = AFFIX_FILES.get(language);
         File dictionaryFile = DICTIONARY_FILES.get(language);
@@ -112,17 +116,26 @@ public class HunspellTokenizer extends BaseTokenizer {
     @Override
     public String[] getSupportedLanguages() {
         
-        AFFIX_FILES.clear();
-        DICTIONARY_FILES.clear();
+        populateInstalledDicts();
+        
+        Set<Language> commonLangs = AFFIX_FILES.keySet();
+        commonLangs.retainAll(DICTIONARY_FILES.keySet());
+        
+        return langsToStrings(commonLangs);
+    }
+    
+    private static void populateInstalledDicts() {
+        AFFIX_FILES = new HashMap<Language, File>();
+        DICTIONARY_FILES = new HashMap<Language, File>();
         
         String dictionaryDirPath = Preferences.getPreference(Preferences.SPELLCHECKER_DICTIONARY_DIRECTORY);
         if (dictionaryDirPath.isEmpty()) {
-            return new String[0];
+            return;
         }
         
         File dictionaryDir = new File(dictionaryDirPath);
         if (!dictionaryDir.exists() || !dictionaryDir.isDirectory()) {
-            return new String[0];
+            return;
         }
         
         for (File file : dictionaryDir.listFiles()) {
@@ -138,11 +151,6 @@ public class HunspellTokenizer extends BaseTokenizer {
             }
             
         }
-        
-        Set<Language> commonLangs = AFFIX_FILES.keySet();
-        commonLangs.retainAll(DICTIONARY_FILES.keySet());
-        
-        return langsToStrings(commonLangs);
     }
     
     private static String[] langsToStrings(Set<Language> langs) {
