@@ -3,7 +3,7 @@
           with fuzzy matching, translation memory, keyword search, 
           glossaries, and translation leveraging into updated projects.
 
- Copyright (C) 2013 Zoltan Bartko
+ Copyright (C) 2013 Zoltan Bartko, Aaron Madlon-Kay
                Home page: http://www.omegat.org/
                Support center: http://groups.yahoo.com/group/OmegaT/
 
@@ -28,6 +28,9 @@ package org.omegat.tokenizer;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.hunspell.HunspellDictionary;
 import org.apache.lucene.analysis.hunspell.HunspellStemFilter;
@@ -43,59 +46,97 @@ import org.omegat.util.Preferences;
  * Methods for tokenize string.
  * 
  * @author Zoltan Bartko - bartkozoltan@bartkozoltan.com
+ * @author Aaron Madlon-Kay
  */
-@Tokenizer(languages = { "en", "hu", "sk" })
+@Tokenizer(languages = { Tokenizer.DISCOVER_AT_RUNTIME })
 public class HunspellTokenizer extends BaseTokenizer {
-
-    HunspellStemFilter stemFilter = null;
-    HunspellDictionary dict;
+    
+    private HunspellDictionary dict;
     
     public HunspellDictionary getDict() {
-        if (dict == null) {
-            Language language;
-            if (Core.getProject().getSourceTokenizer() == this)
-                language = Core.getProject().getProjectProperties().getSourceLanguage();
-            else
-                language = Core.getProject().getProjectProperties().getTargetLanguage();
-                
-            // source
-            String dictionaryDir = Preferences.getPreference(Preferences.SPELLCHECKER_DICTIONARY_DIRECTORY);
-
-            if (dictionaryDir != null) {
-                FileInputStream affixStream;
-                FileInputStream dictStream;
-                try {
-                    String affixName = dictionaryDir + File.separator + language.getLocaleCode() + OConsts.SC_AFFIX_EXTENSION;
-                    String dictionaryName = dictionaryDir + File.separator + language.getLocaleCode()
-                            + OConsts.SC_DICTIONARY_EXTENSION;
-                    affixStream = new FileInputStream(affixName);
-                    dictStream = new FileInputStream(dictionaryName);
-
-                    dict = new HunspellDictionary(affixStream, dictStream, Version.LUCENE_36);
-                } catch (Exception ex) {
-                    return null;
-                }   
-            }
+        if (dict != null) {
+            return dict;
         }
-        return dict;
+        
+        Language language;
+        if (Core.getProject().getSourceTokenizer() == this)
+            language = Core.getProject().getProjectProperties().getSourceLanguage();
+        else
+            language = Core.getProject().getProjectProperties().getTargetLanguage();
+            
+        // source
+        String dictionaryDir = Preferences.getPreference(Preferences.SPELLCHECKER_DICTIONARY_DIRECTORY);
+
+        if (dictionaryDir.isEmpty()) {
+            return null;
+        }
+        
+        File affixFile = new File(dictionaryDir, language.getLocaleCode() + OConsts.SC_AFFIX_EXTENSION);
+        File dictionaryFile = new File(dictionaryDir, language.getLocaleCode() + OConsts.SC_DICTIONARY_EXTENSION);
+        
+        try {
+            dict = new HunspellDictionary(new FileInputStream(affixFile),
+                    new FileInputStream(dictionaryFile),
+                    getBehavior());
+            return dict;
+        } catch (Exception ex) {
+            // Nothing
+        }   
+        return null;
     }
-@Override
+    
+    @Override
     protected TokenStream getTokenStream(final String strOrig,
             final boolean stemsAllowed, final boolean stopWordsAllowed) {
         if (stemsAllowed) {
             HunspellDictionary dictionary = getDict();
-            if (dict == null) {
+            if (dictionary == null) {
                 return new StandardTokenizer(Version.LUCENE_36,
                     new StringReader(strOrig.toLowerCase()));
             }
             
             return new HunspellStemFilter(new StandardTokenizer(Version.LUCENE_36,
-                    new StringReader(strOrig.toLowerCase())),dict);
+                    new StringReader(strOrig.toLowerCase())), dictionary);
             
             /// TODO: implement stop words checks
         } else {
             return new StandardTokenizer(Version.LUCENE_36,
                     new StringReader(strOrig.toLowerCase()));
         }
+    }
+    
+    @Override
+    public String[] getSupportedLanguages() {
+        
+        String dictionaryDirPath = Preferences.getPreference(Preferences.SPELLCHECKER_DICTIONARY_DIRECTORY);
+        if (dictionaryDirPath.isEmpty()) {
+            return new String[0];
+        }
+        
+        File dictionaryDir = new File(dictionaryDirPath);
+        if (!dictionaryDir.exists() || !dictionaryDir.isDirectory()) {
+            return new String[0];
+        }
+        
+        List<String> affixes = new ArrayList<String>();
+        List<String> dictionaries = new ArrayList<String>();
+        for (File file : dictionaryDir.listFiles()) {
+            String name = file.getName();
+            if (name.endsWith(OConsts.SC_AFFIX_EXTENSION)) {
+                affixes.add(name.substring(0, name.lastIndexOf(OConsts.SC_AFFIX_EXTENSION)));
+            } else if (name.endsWith(OConsts.SC_DICTIONARY_EXTENSION)) {
+                dictionaries.add(name.substring(0, name.lastIndexOf(OConsts.SC_DICTIONARY_EXTENSION)));
+            }
+        }
+        
+        List<String> result = new ArrayList<String>();
+        for (String s : affixes) {
+            if (dictionaries.contains(s)) {
+                Language lang = new Language(s);
+                result.add(lang.getLanguage().toLowerCase());
+                result.add(lang.getLanguageCode().toLowerCase());
+            }
+        }
+        return result.toArray(new String[0]);
     }
 }
