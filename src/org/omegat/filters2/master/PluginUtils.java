@@ -168,14 +168,28 @@ public final class PluginUtils {
         if (lang == null) return DefaultTokenizer.class;
         
         // Prefer an exact match on the full ISO language code (XX-YY).
-        Class<?> result = searchForTokenizer(lang.getLanguage());
-        if (result != null) return result;
+        Class<?> exactResult = searchForTokenizer(lang.getLanguage());
+        if (isDefault(exactResult)) {
+            return exactResult;
+        }
         
         // Otherwise return a match for the language only (XX).
-        result = searchForTokenizer(lang.getLanguageCode());
-        if (result != null) return result;
+        Class<?> generalResult = searchForTokenizer(lang.getLanguageCode());
+        if (isDefault(generalResult)) {
+            return generalResult;
+        } else if (exactResult != null) {
+            return exactResult;
+        } else if (generalResult != null) {
+            return generalResult;
+        }
         
         return DefaultTokenizer.class;
+    }
+
+    private static boolean isDefault(Class<?> c) {
+        if (c == null) return false;
+        Tokenizer ann = c.getAnnotation(Tokenizer.class);
+        return ann == null ? false : ann.isDefault();
     }
 
     private static Class<?> searchForTokenizer(String lang) {
