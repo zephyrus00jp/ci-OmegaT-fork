@@ -29,15 +29,18 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.hunspell.HunspellDictionary;
 import org.apache.lucene.analysis.hunspell.HunspellStemFilter;
 import org.apache.lucene.analysis.standard.StandardTokenizer;
-import org.apache.lucene.util.Version;
 import org.omegat.core.Core;
 import org.omegat.util.Language;
+import org.omegat.util.Log;
 import org.omegat.util.OConsts;
 import org.omegat.util.Preferences;
 
@@ -50,6 +53,9 @@ import org.omegat.util.Preferences;
  */
 @Tokenizer(languages = { Tokenizer.DISCOVER_AT_RUNTIME })
 public class HunspellTokenizer extends BaseTokenizer {
+
+    private static Map<Language, File> AFFIX_FILES = new HashMap<Language, File>();
+    private static Map<Language, File> DICTIONARY_FILES = new HashMap<Language, File>();
     
     private HunspellDictionary dict;
     
@@ -63,16 +69,14 @@ public class HunspellTokenizer extends BaseTokenizer {
             language = Core.getProject().getProjectProperties().getSourceLanguage();
         else
             language = Core.getProject().getProjectProperties().getTargetLanguage();
-            
-        // source
-        String dictionaryDir = Preferences.getPreference(Preferences.SPELLCHECKER_DICTIONARY_DIRECTORY);
-
-        if (dictionaryDir.isEmpty()) {
-            return null;
-        }
         
-        File affixFile = new File(dictionaryDir, language.getLocaleCode() + OConsts.SC_AFFIX_EXTENSION);
-        File dictionaryFile = new File(dictionaryDir, language.getLocaleCode() + OConsts.SC_DICTIONARY_EXTENSION);
+        File affixFile = AFFIX_FILES.get(language);
+        File dictionaryFile = DICTIONARY_FILES.get(language);
+        
+        if (affixFile == null || dictionaryFile == null
+                || !affixFile.exists() || !dictionaryFile.exists()) {
+            Log.logErrorRB("HUNSPELL_TOKENIZER_DICT_NOT_INSTALLED", language.getLocale());
+        }
         
         try {
             dict = new HunspellDictionary(new FileInputStream(affixFile),
@@ -91,22 +95,25 @@ public class HunspellTokenizer extends BaseTokenizer {
         if (stemsAllowed) {
             HunspellDictionary dictionary = getDict();
             if (dictionary == null) {
-                return new StandardTokenizer(Version.LUCENE_36,
+                return new StandardTokenizer(getBehavior(),
                     new StringReader(strOrig.toLowerCase()));
             }
             
-            return new HunspellStemFilter(new StandardTokenizer(Version.LUCENE_36,
+            return new HunspellStemFilter(new StandardTokenizer(getBehavior(),
                     new StringReader(strOrig.toLowerCase())), dictionary);
             
             /// TODO: implement stop words checks
         } else {
-            return new StandardTokenizer(Version.LUCENE_36,
+            return new StandardTokenizer(getBehavior(),
                     new StringReader(strOrig.toLowerCase()));
         }
     }
     
     @Override
     public String[] getSupportedLanguages() {
+        
+        AFFIX_FILES.clear();
+        DICTIONARY_FILES.clear();
         
         String dictionaryDirPath = Preferences.getPreference(Preferences.SPELLCHECKER_DICTIONARY_DIRECTORY);
         if (dictionaryDirPath.isEmpty()) {
@@ -118,24 +125,31 @@ public class HunspellTokenizer extends BaseTokenizer {
             return new String[0];
         }
         
-        List<String> affixes = new ArrayList<String>();
-        List<String> dictionaries = new ArrayList<String>();
         for (File file : dictionaryDir.listFiles()) {
             String name = file.getName();
             if (name.endsWith(OConsts.SC_AFFIX_EXTENSION)) {
-                affixes.add(name.substring(0, name.lastIndexOf(OConsts.SC_AFFIX_EXTENSION)));
+                Language lang = new Language(name.substring(0, name.lastIndexOf(OConsts.SC_AFFIX_EXTENSION)));
+                AFFIX_FILES.put(lang, file);
+                AFFIX_FILES.put(new Language(lang.getLanguageCode()), file);
             } else if (name.endsWith(OConsts.SC_DICTIONARY_EXTENSION)) {
-                dictionaries.add(name.substring(0, name.lastIndexOf(OConsts.SC_DICTIONARY_EXTENSION)));
+                Language lang = new Language(name.substring(0, name.lastIndexOf(OConsts.SC_DICTIONARY_EXTENSION)));
+                DICTIONARY_FILES.put(lang, file);
+                DICTIONARY_FILES.put(new Language(lang.getLanguageCode()), file);
             }
+            
         }
         
+        Set<Language> commonLangs = AFFIX_FILES.keySet();
+        commonLangs.retainAll(DICTIONARY_FILES.keySet());
+        
+        return langsToStrings(commonLangs);
+    }
+    
+    private static String[] langsToStrings(Set<Language> langs) {
         List<String> result = new ArrayList<String>();
-        for (String s : affixes) {
-            if (dictionaries.contains(s)) {
-                Language lang = new Language(s);
-                result.add(lang.getLanguage().toLowerCase());
-                result.add(lang.getLanguageCode().toLowerCase());
-            }
+        for (Language lang : langs) {
+            result.add(lang.getLanguage().toLowerCase());
+            result.add(lang.getLanguageCode().toLowerCase());
         }
         return result.toArray(new String[0]);
     }
