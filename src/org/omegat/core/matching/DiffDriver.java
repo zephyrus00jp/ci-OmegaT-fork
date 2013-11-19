@@ -28,6 +28,7 @@ package org.omegat.core.matching;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import org.omegat.core.Core;
 import org.omegat.tokenizer.ITokenizer;
@@ -46,6 +47,8 @@ public class DiffDriver {
     public enum Type {
         INSERT, DELETE, NOCHANGE
     }
+    
+    public static final Pattern DIFF_MERGEABLE_DELIMITER_PATTERN = Pattern.compile("[ :;,.()]+");
 
     /**
      * Given two strings, perform a diff comparison and return a Render object.
@@ -159,7 +162,8 @@ public class DiffDriver {
                 if (r0.type == Type.DELETE 
                         && r1.type == Type.INSERT 
                         && r2.type == Type.NOCHANGE 
-                        && render.text.substring(r2.start, r2.start + r2.length).matches("[ :;,.()]+") 
+                        && DIFF_MERGEABLE_DELIMITER_PATTERN.matcher(
+                                render.text.substring(r2.start, r2.start + r2.length)).matches() 
                         && r3.type == Type.DELETE 
                         && r4.type == Type.INSERT 
                         ) {
