@@ -137,7 +137,7 @@ public class DiffDriver {
         if (level > 3) 
             return render;
         
-        StringBuffer rawText = new StringBuffer();
+        StringBuilder rawText = new StringBuilder();
         Render result = new Render();
         List<TextRun> fList = render.formatting;
         
@@ -160,7 +160,7 @@ public class DiffDriver {
                         && r3.type == Type.DELETE 
                         && r4.type == Type.INSERT 
                         ) {
-                    StringBuffer buff = new StringBuffer();
+                    StringBuilder buff = new StringBuilder();
                     //merge deletes
                     buff.append(render.getRunText(r0));
                     buff.append(render.getRunText(r2));
