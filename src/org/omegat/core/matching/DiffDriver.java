@@ -54,7 +54,7 @@ public class DiffDriver {
      * @param revised Revised string for comparison
      * @return Render object
      */
-    public static Render render(String original, String revised) {
+    public static Render render(String original, String revised, boolean optimize) {
 
         Render result = new Render();
         
@@ -129,8 +129,12 @@ public class DiffDriver {
         }
 
         result.text = rawText.toString();
-        Render optimized = optimizeRender(result,0);
-        return (optimized.formatting.size() < result.formatting.size()) ? optimized : result;
+        if (optimize) {
+            Render optimized = optimizeRender(result,0);
+            return (optimized.formatting.size() < result.formatting.size()) ? optimized : result;
+        } else {
+            return result;
+        }
     }
 
     private static Render optimizeRender(Render render, int level) {

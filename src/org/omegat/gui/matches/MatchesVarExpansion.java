@@ -76,12 +76,16 @@ public class MatchesVarExpansion extends VarExpansion<NearString> {
     public static final String VAR_CHANGED_DATE = "${changedDate}";
     public static final String VAR_FUZZY_FLAG = "${fuzzyFlag}";
     public static final String VAR_DIFF = "${diff}";
+    public static final String VAR_DIFF_OPTIMIZED = "${diffOptimized}";
+    public static final String VAR_DIFF_REVERSED = "${diffReversed}";
     
     
     public static final String[] MATCHES_VARIABLES = {
         VAR_ID, 
         VAR_SOURCE_TEXT,
         VAR_DIFF,
+        VAR_DIFF_OPTIMIZED,
+        VAR_DIFF_REVERSED,
         VAR_TARGET_TEXT, 
         VAR_SCORE_BASE, VAR_SCORE_NOSTEM, VAR_SCORE_ADJUSTED,
         VAR_FILE_NAME_ONLY, VAR_FILE_PATH, VAR_FILE_SHORT_PATH,
@@ -112,9 +116,31 @@ public class MatchesVarExpansion extends VarExpansion<NearString> {
         public void replace(Result R, NearString match) {
             R.diffPos = R.text.indexOf(VAR_DIFF);
             if (R.diffPos != -1) {
-                Render diffRender = DiffDriver.render(Core.getEditor().getCurrentEntry().getSrcText(), match.source);
+                Render diffRender = DiffDriver.render(match.source, Core.getEditor().getCurrentEntry().getSrcText(), false);
                 R.diffInfo = diffRender.formatting;
                 R.text = R.text.replace(VAR_DIFF, diffRender.text);
+            }
+        }
+    };
+    
+    private static Replacer diffOptimizedReplacer = new Replacer() {
+        public void replace(Result R, NearString match) {
+            R.diffPos = R.text.indexOf(VAR_DIFF_OPTIMIZED);
+            if (R.diffPos != -1) {
+                Render diffRender = DiffDriver.render(match.source, Core.getEditor().getCurrentEntry().getSrcText(), true);
+                R.diffInfo = diffRender.formatting;
+                R.text = R.text.replace(VAR_DIFF_OPTIMIZED, diffRender.text);
+            }
+        }
+    };
+    
+    private static Replacer diffReversedReplacer = new Replacer() {
+        public void replace(Result R, NearString match) {
+            R.diffPos = R.text.indexOf(VAR_DIFF_REVERSED);
+            if (R.diffPos != -1) {
+                Render diffRender = DiffDriver.render(Core.getEditor().getCurrentEntry().getSrcText(), match.source, true);
+                R.diffInfo = diffRender.formatting;
+                R.text = R.text.replace(VAR_DIFF_REVERSED, diffRender.text);
             }
         }
     };
@@ -228,6 +254,8 @@ public class MatchesVarExpansion extends VarExpansion<NearString> {
 
         styledComponents.put(R.text.indexOf(VAR_SOURCE_TEXT), sourceTextReplacer);
         styledComponents.put(R.text.indexOf(VAR_DIFF), diffReplacer);
+        styledComponents.put(R.text.indexOf(VAR_DIFF_OPTIMIZED), diffOptimizedReplacer);
+        styledComponents.put(R.text.indexOf(VAR_DIFF_REVERSED), diffReversedReplacer);
 
         for (Entry<Integer, Replacer> e : styledComponents.entrySet()) {
             e.getValue().replace(R, match);
