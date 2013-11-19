@@ -149,10 +149,10 @@ public class MatchesVarExpansion extends VarExpansion<NearString> {
     
     /** Class to store formatted text and indications for other treatments **/
     public static class Result {
-        public String text; 
-        public int sourcePos;
-    public List<TextRun> diffInfo;
-    public int diffPos;
+        public String text = null; 
+        public int sourcePos = -1;
+        public List<TextRun> diffInfo = null;
+        public int diffPos = -1;
     }
     
     /** A simple interface for making anonymous functions that perform string replacements. */
