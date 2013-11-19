@@ -32,6 +32,7 @@ import org.omegat.core.matching.DiffDriver.TextRun;
 import org.omegat.core.matching.DiffDriver.Render;
 import org.omegat.core.matching.NearString;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Date;
@@ -40,6 +41,7 @@ import java.util.TreeMap;
 import java.text.DateFormat;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
+
 import org.omegat.core.Core;
 import org.omegat.util.OStrings;
 
@@ -114,10 +116,10 @@ public class MatchesVarExpansion extends VarExpansion<NearString> {
     
     private static Replacer diffReplacer = new Replacer() {
         public void replace(Result R, NearString match) {
-            R.diffPos = R.text.indexOf(VAR_DIFF);
-            if (R.diffPos != -1) {
+            int diffPos = R.text.indexOf(VAR_DIFF);
+            if (diffPos != -1) {
                 Render diffRender = DiffDriver.render(match.source, Core.getEditor().getCurrentEntry().getSrcText(), false);
-                R.diffInfo = diffRender.formatting;
+                R.diffInfo.put(diffPos, diffRender.formatting);
                 R.text = R.text.replace(VAR_DIFF, diffRender.text);
             }
         }
@@ -125,10 +127,10 @@ public class MatchesVarExpansion extends VarExpansion<NearString> {
     
     private static Replacer diffOptimizedReplacer = new Replacer() {
         public void replace(Result R, NearString match) {
-            R.diffPos = R.text.indexOf(VAR_DIFF_OPTIMIZED);
-            if (R.diffPos != -1) {
+            int diffPos = R.text.indexOf(VAR_DIFF_OPTIMIZED);
+            if (diffPos != -1) {
                 Render diffRender = DiffDriver.render(match.source, Core.getEditor().getCurrentEntry().getSrcText(), true);
-                R.diffInfo = diffRender.formatting;
+                R.diffInfo.put(diffPos, diffRender.formatting);
                 R.text = R.text.replace(VAR_DIFF_OPTIMIZED, diffRender.text);
             }
         }
@@ -136,10 +138,10 @@ public class MatchesVarExpansion extends VarExpansion<NearString> {
     
     private static Replacer diffReversedReplacer = new Replacer() {
         public void replace(Result R, NearString match) {
-            R.diffPos = R.text.indexOf(VAR_DIFF_REVERSED);
-            if (R.diffPos != -1) {
+            int diffPos = R.text.indexOf(VAR_DIFF_REVERSED);
+            if (diffPos != -1) {
                 Render diffRender = DiffDriver.render(Core.getEditor().getCurrentEntry().getSrcText(), match.source, true);
-                R.diffInfo = diffRender.formatting;
+                R.diffInfo.put(diffPos, diffRender.formatting);
                 R.text = R.text.replace(VAR_DIFF_REVERSED, diffRender.text);
             }
         }
@@ -151,8 +153,7 @@ public class MatchesVarExpansion extends VarExpansion<NearString> {
     public static class Result {
         public String text = null; 
         public int sourcePos = -1;
-        public List<TextRun> diffInfo = null;
-        public int diffPos = -1;
+        public final Map<Integer, List<TextRun>> diffInfo = new HashMap<Integer, List<TextRun>>();
     }
     
     /** A simple interface for making anonymous functions that perform string replacements. */
