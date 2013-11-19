@@ -81,7 +81,7 @@ public class DiffDriver {
             if (c == null) {
                 // No change for this token.
                 if (n < originalStrings.length) {
-                    result.addRun(rawText.length(), originalStrings[n].length(), Type.NOCHANGE);  
+                    if (optimize) result.addRun(rawText.length(), originalStrings[n].length(), Type.NOCHANGE);  
                     rawText.append(originalStrings[n]);
                 }
                 continue;
@@ -123,7 +123,6 @@ public class DiffDriver {
                 // add the original token in as well.
                 if (c.deleted == 0 && n < originalStrings.length) {
                     rawText.append(originalStrings[n]);
-                    //result.addRun(start, rawText.length() - start, Type.NOCHANGE);
                 }
             }
         }
