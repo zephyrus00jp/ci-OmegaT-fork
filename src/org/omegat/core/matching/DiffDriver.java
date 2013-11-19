@@ -4,6 +4,7 @@
           glossaries, and translation leveraging into updated projects.
 
  Copyright (C) 2012 Aaron Madlon-Kay
+               2013 Zoltan Bartko
                Home page: http://www.omegat.org/
                Support center: http://groups.yahoo.com/group/OmegaT/
 
@@ -43,7 +44,7 @@ import bmsi.util.Diff;
 public class DiffDriver {
 
     public enum Type {
-        INSERT, DELETE
+        INSERT, DELETE, NOCHANGE
     }
 
     /**
@@ -80,6 +81,7 @@ public class DiffDriver {
             if (c == null) {
                 // No change for this token.
                 if (n < originalStrings.length) {
+                    result.addRun(rawText.length(), originalStrings[n].length(), Type.NOCHANGE);  
                     rawText.append(originalStrings[n]);
                 }
                 continue;
@@ -121,15 +123,75 @@ public class DiffDriver {
                 // add the original token in as well.
                 if (c.deleted == 0 && n < originalStrings.length) {
                     rawText.append(originalStrings[n]);
+                    //result.addRun(start, rawText.length() - start, Type.NOCHANGE);
                 }
             }
         }
 
         result.text = rawText.toString();
-
-        return result;
+        Render optimized = optimizeRender(result,0);
+        return (optimized.formatting.size() < result.formatting.size()) ? optimized : result;
     }
 
+    private static Render optimizeRender(Render render, int level) {
+        if (level > 3) 
+            return render;
+        
+        StringBuffer rawText = new StringBuffer();
+        Render result = new Render();
+        List<TextRun> fList = render.formatting;
+        
+        // try to merge <deletion><insertion><space><deletion><insertion> patterns
+        if (fList.size() < 5)
+            return render;
+        
+        for (int i = 0; i < fList.size(); i++) {
+            TextRun r0 = fList.get(i);
+            if (i < fList.size()-4) {
+                TextRun r1 = fList.get(i+1);
+                TextRun r2 = fList.get(i+2);
+                TextRun r3 = fList.get(i+3);
+                TextRun r4 = fList.get(i+4);
+
+                if (r0.type == Type.DELETE 
+                        && r1.type == Type.INSERT 
+                        && r2.type == Type.NOCHANGE 
+                        && render.text.substring(r2.start, r2.start + r2.length).matches("[ :;,.()]+") 
+                        && r3.type == Type.DELETE 
+                        && r4.type == Type.INSERT 
+                        ) {
+                    StringBuffer buff = new StringBuffer();
+                    //merge deletes
+                    buff.append(render.getRunText(r0));
+                    buff.append(render.getRunText(r2));
+                    buff.append(render.getRunText(r3));
+                    
+                    result.addRun(rawText.length(), buff.length(), Type.DELETE);
+                    rawText.append(buff);
+
+                    buff.delete(0,buff.length());
+
+                    //merge inserts
+                    buff.append(render.getRunText(r1));
+                    buff.append(render.getRunText(r2));
+                    buff.append(render.getRunText(r4));
+                    
+                    result.addRun(rawText.length(), buff.length(), Type.INSERT);
+                    rawText.append(buff);
+
+                    i = i+4;
+                    continue;
+                }    
+            }
+            result.addRun(rawText.length(), r0.length, r0.type);
+            rawText.append(render.getRunText(r0));
+        }
+        
+        result.text = rawText.toString();
+        
+        Render optimized = optimizeRender(result,level+1);
+        return (optimized.formatting.size() < result.formatting.size()) ? optimized : result;
+    }
     /**
      * Recurse through a change script until we find a change at the given index.
      *
@@ -213,6 +275,15 @@ public class DiffDriver {
 
         public void addRun(int start, int length, Type type) {
             formatting.add(new TextRun(start, length, type));
+        }
+        
+        /**
+         * Get the text corresponding to the run 
+         * @param run
+         * @return 
+         */
+        public String getRunText(TextRun run) {
+            return text.substring(run.start, run.start + run.length);
         }
     }
 

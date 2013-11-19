@@ -112,7 +112,7 @@ public class MatchesVarExpansion extends VarExpansion<NearString> {
         public void replace(Result R, NearString match) {
             R.diffPos = R.text.indexOf(VAR_DIFF);
             if (R.diffPos != -1) {
-                Render diffRender = DiffDriver.render(match.source, Core.getEditor().getCurrentEntry().getSrcText());
+                Render diffRender = DiffDriver.render(Core.getEditor().getCurrentEntry().getSrcText(), match.source);
                 R.diffInfo = diffRender.formatting;
                 R.text = R.text.replace(VAR_DIFF, diffRender.text);
             }
