@@ -125,6 +125,7 @@ public class DiffDriver {
                 // If this was an insert only (no deleted lines), we should
                 // add the original token in as well.
                 if (c.deleted == 0 && n < originalStrings.length) {
+                    if (optimize) result.addRun(rawText.length(), originalStrings[n].length(), Type.NOCHANGE); 
                     rawText.append(originalStrings[n]);
                 }
             }
