@@ -32,6 +32,7 @@ package org.omegat.gui.main;
 
 import java.awt.Cursor;
 import java.io.File;
+import java.util.Date;
 import java.util.concurrent.ExecutionException;
 
 import javax.swing.JOptionPane;
@@ -316,7 +317,9 @@ public class ProjectUICommands {
                             new RepositoryUtils.AskCredentials() {
                                 public void callRepository() throws Exception {
                                     Core.getMainWindow().showStatusMessageRB("TEAM_SYNCHRONIZE");
-                                    repository.updateFullProject();
+                                    Date date = repository.updateFullProject();
+                                    Core.getMainWindow().showTeamSourceUpdatedDate(date);
+                                    Core.getMainWindow().showTeamSavedDate(date);
                                     Core.getMainWindow().showStatusMessageRB(null);
                                 }
                             }.execute(repository);
@@ -415,7 +418,9 @@ public class ProjectUICommands {
                     new RepositoryUtils.AskCredentials() {
                         public void callRepository() throws Exception {
                             Core.getMainWindow().showStatusMessageRB("TEAM_SYNCHRONIZE");
-                            repository.updateFullProject();
+                            Date date = repository.updateFullProject();
+                            Core.getMainWindow().showTeamSourceUpdatedDate(date);
+                            Core.getMainWindow().showTeamSavedDate(date);
                             Core.getMainWindow().showStatusMessageRB(null);
                         }
                     }.execute(repository);
@@ -499,6 +504,9 @@ public class ProjectUICommands {
                                 MainWindowUI.STATUS_BAR_MODE.DEFAULT) == MainWindowUI.STATUS_BAR_MODE.DEFAULT
                         ? OStrings.getString("MW_PROGRESS_DEFAULT") : OStrings.getProgressBarDefaultPrecentageText());
 
+                Core.getMainWindow().showTeamSavedDate(null);
+                Core.getMainWindow().showTeamSourceUpdatedDate(null);
+                
                 return null;
             }
 

@@ -185,12 +185,17 @@ public class MainWindowUI {
      */
     public static JPanel createStatusBar(final MainWindow mainWindow) {
         mainWindow.statusLabel = new JLabel();
+        mainWindow.teamStatusLabel = new JLabel();
         mainWindow.progressLabel = new JLabel();
         mainWindow.lengthLabel = new JLabel();
 
         mainWindow.statusLabel.setFont(mainWindow.statusLabel.getFont().deriveFont(11));
 
         Border border = UIManager.getBorder("OmegaTStatusArea.border");
+
+        mainWindow.teamStatusLabel.setBorder(border);
+        mainWindow.teamStatusLabel.setFocusable(false);
+        mainWindow.teamStatusLabel.setVisible(false);
         
         final STATUS_BAR_MODE progressMode = STATUS_BAR_MODE.valueOf(
                 Preferences.getPreferenceEnumDefault(Preferences.SB_PROGRESS_MODE,
@@ -240,6 +245,7 @@ public class MainWindowUI {
         mainWindow.lengthLabel.setFocusable(false);
 
         JPanel statusPanel2 = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        statusPanel2.add(mainWindow.teamStatusLabel);
         statusPanel2.add(mainWindow.progressLabel);
         statusPanel2.add(mainWindow.lengthLabel);
 

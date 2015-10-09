@@ -43,6 +43,8 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -116,6 +118,7 @@ public class MainWindow extends JFrame implements IMainWindow {
 
     protected JLabel lengthLabel;
     protected JLabel progressLabel;
+    protected JLabel teamStatusLabel;
     protected JLabel statusLabel;
 
     protected DockingDesktop desktop;
@@ -475,6 +478,29 @@ public class MainWindow extends JFrame implements IMainWindow {
      */
     public void showLengthMessage(String messageText) {
         lengthLabel.setText(messageText);
+    }
+    
+    private Date sourceUpdatedDate;
+    private Date savedDate;
+    
+    @Override
+    public void showTeamSavedDate(Date date) {
+        savedDate = date;
+        updateTeamStatus();
+    }
+    
+    @Override
+    public void showTeamSourceUpdatedDate(Date date) {
+        sourceUpdatedDate = date;
+        updateTeamStatus();
+    }
+    
+    private void updateTeamStatus() {
+        DateFormat fmt = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
+        teamStatusLabel.setText(StaticUtils.format(OStrings.getString("MW_TEAM_STATUS_FORMAT"),
+                sourceUpdatedDate == null ? "?" : fmt.format(sourceUpdatedDate),
+                savedDate == null ? "?" : fmt.format(savedDate)));
+        teamStatusLabel.setVisible(sourceUpdatedDate != null || savedDate != null);
     }
 
     // /////////////////////////////////////////////////////////////

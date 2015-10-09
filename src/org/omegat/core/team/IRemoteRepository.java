@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Properties;
 
 /**
@@ -72,7 +73,7 @@ public interface IRemoteRepository {
      * Update full project from remote repository.
      * PRE: no local changes if you don't want conflicts
      */
-    void updateFullProject() throws NetworkException, Exception;
+    Date updateFullProject() throws NetworkException, Exception;
 
     /**
      * Initial project checkout.
@@ -117,7 +118,7 @@ public interface IRemoteRepository {
      * 
      * 2. Somebody changed other segments in repository.
      */
-    void upload(File file, String commitMessage) throws NetworkException, Exception;
+    Date upload(File file, String commitMessage) throws NetworkException, Exception;
 
     /**
      * Credentials are not provided or not correct. Should trigger credentials-prompt

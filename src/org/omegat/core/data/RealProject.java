@@ -682,7 +682,8 @@ public class RealProject implements IProject {
 
                     if (repository != null && doTeamSync) {
                         Core.getMainWindow().showStatusMessageRB("TEAM_SYNCHRONIZE");
-                        rebaseProject();
+                        Date date = rebaseProject();
+                        Core.getMainWindow().showTeamSavedDate(date);
                     }
 
                     setProjectModified(false);
@@ -750,7 +751,7 @@ public class RealProject implements IProject {
      * @author Alex Buloichik <alex73mail@gmail.com>
      * @author Martin Fleurke
      */
-    private void rebaseProject() throws Exception {
+    private Date rebaseProject() throws Exception {
         File filenameTMXwithLocalChangesOnBase, filenameTMXwithLocalChangesOnHead;
         ProjectTMX baseTMX, headTMX;
 
@@ -997,17 +998,19 @@ public class RealProject implements IProject {
         }
 
         // upload updated
+        final DateHolder holder = new DateHolder();
         if (needUpload) {
             final String author = Preferences.getPreferenceDefault(Preferences.TEAM_AUTHOR,
                     System.getProperty("user.name"));
             try {
                 new RepositoryUtils.AskCredentials() {
                     public void callRepository() throws Exception {
-                        repository.upload(projectTMXFile,
+                        Date d = repository.upload(projectTMXFile,
                                 "Translated by " + author + commitDetails.toString());
                         if (updateGlossary) {
-                            repository.upload(glossaryFile, "Added glossaryitem(s) by " + author);
+                            d = repository.upload(glossaryFile, "Added glossaryitem(s) by " + author);
                         }
+                        holder.date = d;
                     }
                 }.execute(repository);
                 setOnlineMode();
@@ -1018,6 +1021,11 @@ public class RealProject implements IProject {
             }
         }
         Log.logInfoRB("TEAM_REBASE_END");
+        return holder.date;
+    }
+    
+    private static class DateHolder {
+        public Date date;
     }
 
     /**

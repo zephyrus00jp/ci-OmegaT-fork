@@ -30,6 +30,7 @@ import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -145,13 +146,14 @@ public class SVNRemoteRepository implements IRemoteRepository {
         readOnly = value;
     }
 
-    public void updateFullProject() throws SocketException, Exception {
+    public Date updateFullProject() throws SocketException, Exception {
         Log.logInfoRB("SVN_START", "update");
         try {
             long rev = ourClientManager.getUpdateClient().doUpdate(baseDirectory, SVNRevision.HEAD, SVNDepth.INFINITY,
                     false, false);
             Log.logDebug(LOGGER, "SVN updated to revision {0}", rev);
             Log.logInfoRB("SVN_FINISH", "update");
+            return SVNRevision.create(rev).getDate();
         } catch (SVNAuthenticationException ex) {
             // authentication failed - need to ask username/password
             Log.logWarningRB("SVN_ERROR", "update", ex.getMessage());
@@ -228,11 +230,11 @@ public class SVNRemoteRepository implements IRemoteRepository {
         }
     }
 
-    public void upload(File file, String commitMessage) throws SocketException, Exception {
+    public Date upload(File file, String commitMessage) throws SocketException, Exception {
         if (readOnly) {
             // read-only - upload disabled
             Log.logInfoRB("SVN_READONLY");
-            return;
+            return null;
         }
 
         Log.logInfoRB("SVN_START", "upload");
@@ -241,6 +243,7 @@ public class SVNRemoteRepository implements IRemoteRepository {
                     null, null, false, false, SVNDepth.INFINITY);
             Log.logDebug(LOGGER, "SVN committed file {0} into new revision {1}", file, info.getNewRevision());
             Log.logInfoRB("SVN_FINISH", "upload");
+            return info.getDate();
         } catch (SVNAuthenticationException ex) {
             // authentication failed - need to ask username/password
             Log.logWarningRB("SVN_ERROR", "update", ex.getMessage());
@@ -249,7 +252,7 @@ public class SVNRemoteRepository implements IRemoteRepository {
             if (ex.getErrorMessage().getErrorCode() == SVNErrorCode.FS_CONFLICT) {
                 // Somebody else committed changes - it's normal. Will upload on next save.
                 Log.logWarningRB("SVN_CONFLICT");
-                return;
+                return null;
             } else {
                 Log.logErrorRB("SVN_ERROR", "upload", ex.getMessage());
                 checkNetworkException(ex);

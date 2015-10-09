@@ -28,6 +28,7 @@ package org.omegat.gui.main;
 import java.awt.Cursor;
 import java.awt.Font;
 import java.awt.HeadlessException;
+import java.util.Date;
 
 import javax.swing.JFrame;
 
@@ -120,6 +121,14 @@ public class ConsoleWindow implements IMainWindow {
     }
 
     public void showProgressMessage(String messageText) {
+        throw new NoSuchMethodError("Invalid call of ConsoleWindow");
+    }
+    
+    public void showTeamSavedDate(Date date) {
+        throw new NoSuchMethodError("Invalid call of ConsoleWindow");
+    }
+    
+    public void showTeamSourceUpdatedDate(Date date) {
         throw new NoSuchMethodError("Invalid call of ConsoleWindow");
     }
 

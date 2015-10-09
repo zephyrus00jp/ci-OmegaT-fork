@@ -29,6 +29,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Date;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -247,7 +248,7 @@ public class GITRemoteRepository implements IRemoteRepository {
         }
     }
 
-    public void updateFullProject() throws NetworkException, Exception {
+    public Date updateFullProject() throws NetworkException, Exception {
         Log.logInfoRB("GIT_START", "pull");
         try {
             new Git(repository).fetch().call();
@@ -257,10 +258,12 @@ public class GITRemoteRepository implements IRemoteRepository {
                     .setName(LOCAL_BRANCH).setForce(true).call();
             new Git(repository).submoduleUpdate().call();
             Log.logInfoRB("GIT_FINISH", "pull");
+            return getLastCommitTime();
         } catch (Exception ex) {
             Log.logErrorRB("GIT_ERROR", "pull", ex.getMessage());
             checkAndThrowException(ex);
         }
+        return null;
     }
 
     public void download(File[] files) throws NetworkException, Exception {
@@ -278,14 +281,15 @@ public class GITRemoteRepository implements IRemoteRepository {
         }
     }
 
-    public void upload(File file, String commitMessage) throws NetworkException, Exception {
+    public Date upload(File file, String commitMessage) throws NetworkException, Exception {
         if (readOnly) {
             // read-only - upload disabled
             Log.logInfoRB("GIT_READONLY");
-            return;
+            return null;
         }
 
         boolean ok = true;
+        Date uploadedTime = null;
         Log.logInfoRB("GIT_START", "upload");
         try {
 //            if (!isChanged(file)) {
@@ -297,6 +301,7 @@ public class GITRemoteRepository implements IRemoteRepository {
             new Git(repository).commit().setMessage(commitMessage).call();
             Iterable<PushResult> results = new Git(repository).push().setRemote(REMOTE).add(LOCAL_BRANCH)
                     .call();
+            uploadedTime = getLastCommitTime();
             int count = 0;
             for (PushResult r : results) {
                 for (RemoteRefUpdate update : r.getRemoteUpdates()) {
@@ -316,6 +321,18 @@ public class GITRemoteRepository implements IRemoteRepository {
         }
         if (!ok) {
             Log.logWarningRB("GIT_CONFLICT");
+            uploadedTime = null;
+        }
+        return uploadedTime;
+    }
+    
+    private Date getLastCommitTime() {
+        try {
+            int commitTime = new Git(repository).log().call().iterator().next().getCommitTime();
+            return new Date(((long) commitTime) * 1000);
+        } catch (Exception ex) {
+            Log.log(ex);
+            return null;
         }
     }
 

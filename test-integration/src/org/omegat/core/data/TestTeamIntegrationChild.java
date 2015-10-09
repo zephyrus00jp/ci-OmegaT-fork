@@ -31,6 +31,7 @@ import java.awt.HeadlessException;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -497,6 +498,12 @@ public class TestTeamIntegrationChild {
         }
 
         public void addDockable(Dockable pane) {
+        }
+
+        public void showTeamSourceUpdatedDate(Date date) {
+        }
+
+        public void showTeamSavedDate(Date date) {
         }
     };
 

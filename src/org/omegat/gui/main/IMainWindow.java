@@ -28,6 +28,7 @@ package org.omegat.gui.main;
 import java.awt.Cursor;
 import java.awt.Font;
 import java.awt.HeadlessException;
+import java.util.Date;
 
 import javax.swing.JFrame;
 
@@ -84,6 +85,10 @@ public interface IMainWindow {
      *            message text
      */
     void showLengthMessage(String messageText);
+
+    void showTeamSourceUpdatedDate(Date date);
+    
+    void showTeamSavedDate(Date date);
 
     /**
      * Display warning.

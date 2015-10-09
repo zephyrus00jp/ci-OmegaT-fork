@@ -29,6 +29,7 @@ import java.awt.Cursor;
 import java.awt.Font;
 import java.awt.HeadlessException;
 import java.io.File;
+import java.util.Date;
 
 import javax.swing.JFrame;
 import javax.swing.JMenu;
@@ -138,6 +139,12 @@ public abstract class TestCore extends XMLTestCase {
             }
 
             public void showMessageDialog(String message) {
+            }
+
+            public void showTeamSavedDate(Date date) {
+            }
+
+            public void showTeamSourceUpdatedDate(Date date) {
             }
         });
         Core.setCurrentProject(new NotLoadedProject());
