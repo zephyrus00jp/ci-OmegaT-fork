@@ -118,10 +118,6 @@ public class StarDict implements IDictionary {
             }
         }
 
-        if (idxoffsetbits != 32) {
-            throw new Exception("StarDict dictionaries with idxoffsetbits=64 are not supported.");
-        }
-
         String f = ifoFile.getPath();
         if (f.endsWith(".ifo")) {
             f = f.substring(0, f.length() - ".ifo".length());
@@ -132,6 +128,9 @@ public class StarDict implements IDictionary {
         if (new File(dzFile).isFile()) {
             dictType = DictType.DICTZIP;
             dataFile = dzFile;
+            if (idxoffsetbits != 32) {
+                throw new Exception("Gzipped StarDict dictionaries with idxoffsetbits=64 are not supported.");
+            }
         } else {
             String dictFile = f + ".dict";
             if (!new File(dictFile).isFile()) {
@@ -159,7 +158,7 @@ public class StarDict implements IDictionary {
             if (b == 0) {
                 String key = new String(mem.toByteArray(), 0, mem.size(), OConsts.UTF8);
                 mem.reset();
-                int bodyOffset = idx.readInt();
+                long bodyOffset = idxoffsetbits == 32 ? idx.readInt() : idx.readLong();
                 int bodyLength = idx.readInt();
                 addIndex(key, bodyOffset, bodyLength, result);
             } else {
@@ -181,7 +180,7 @@ public class StarDict implements IDictionary {
      * @param result
      *            result map
      */
-    private void addIndex(final String key, final int start, final int len, final Map<String, Object> result) {
+    private void addIndex(final String key, final long start, final int len, final Map<String, Object> result) {
         Object data = result.get(key);
         if (data == null) {
             Entry d = new Entry(start, len);
@@ -228,7 +227,7 @@ public class StarDict implements IDictionary {
      * @param len Length of article data
      * @return Raw article text
      */
-    private synchronized String readArticle(int start, int len) {
+    private synchronized String readArticle(long start, int len) {
         switch (dictType) {
         case DICTFILE:
             return readDictArticleText(start, len);
@@ -247,7 +246,7 @@ public class StarDict implements IDictionary {
      * @param len Length of article data
      * @return Raw article text
      */
-    private String readDictArticleText(int start, int len) {
+    private String readDictArticleText(long start, int len) {
         FileInputStream in = null;
         try {
             in = new FileInputStream(dataFile);
@@ -288,15 +287,18 @@ public class StarDict implements IDictionary {
      * @param len Length of article data
      * @return Raw article text
      */
-    private String readDictZipArticleText(int start, int len) {
+    private String readDictZipArticleText(long start, int len) {
+        if (start > Integer.MAX_VALUE) {
+            throw new IllegalArgumentException("Start offset cannot be larger than Integer.MAX_VALUE.");
+        }
         RandomAccessInputStream in = null;
         DictZipInputStream din = null;
         try {
             in = new RandomAccessInputStream(dataFile, "r");
             din = new DictZipInputStream(in);
             DictZipHeader h = getDZHeader(din);
-            int off = h.getOffset(start);
-            int pos = h.getPosition(start);
+            int off = h.getOffset((int) start);
+            int pos = h.getPosition((int) start);
             in.seek(pos);
             byte[] b = new byte[off + len];
             din.readFully(b);
@@ -376,10 +378,10 @@ public class StarDict implements IDictionary {
     
     private class Entry {
         private volatile String cache;
-        private final int start;
+        private final long start;
         private final int len;
         
-        public Entry(int start, int len) {
+        public Entry(long start, int len) {
             this.start = start;
             this.len = len;
         }
