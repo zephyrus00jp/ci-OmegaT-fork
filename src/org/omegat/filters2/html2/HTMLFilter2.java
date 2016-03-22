@@ -32,6 +32,7 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
@@ -102,6 +103,13 @@ public class HTMLFilter2 extends AbstractFilter {
     public BufferedReader createReader(File infile, String encoding) throws UnsupportedEncodingException,
             IOException {
         HTMLReader hreader = new HTMLReader(infile.getAbsolutePath(), encoding);
+        sourceEncoding = hreader.getEncoding();
+        return new BufferedReader(hreader);
+    }
+
+    public BufferedReader createReader(InputStream inStream, String encoding)
+            throws UnsupportedEncodingException, IOException {
+        HTMLReader hreader = new HTMLReader(inStream, encoding);
         sourceEncoding = hreader.getEncoding();
         return new BufferedReader(hreader);
     }

@@ -30,6 +30,7 @@ import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.regex.Matcher;
@@ -70,6 +71,10 @@ public class HTMLReader extends Reader {
         reader = new BufferedReader(createReader(fileName, encoding));
     }
 
+    public HTMLReader(InputStream inStream, String encoding) throws IOException {
+        reader = new BufferedReader(createReader(inStream, encoding));
+    }
+
     private String encoding = null;
 
     /**
@@ -94,8 +99,12 @@ public class HTMLReader extends Reader {
      * Note that we cannot detect UTF-16 encoding, if there's no BOM!
      */
     private Reader createReader(String fileName, String defaultEncoding) throws IOException {
+        return createReader(new FileInputStream(fileName), defaultEncoding);
+    }
+
+    private Reader createReader(InputStream inStream, String defaultEncoding) throws IOException {
         // BOM detection
-        BufferedInputStream is = new BufferedInputStream(new FileInputStream(fileName));
+        BufferedInputStream is = new BufferedInputStream(inStream);
 
         is.mark(OConsts.READ_AHEAD_LIMIT);
 

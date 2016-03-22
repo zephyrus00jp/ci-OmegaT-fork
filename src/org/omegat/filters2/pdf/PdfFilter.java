@@ -28,17 +28,22 @@ package org.omegat.filters2.pdf;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
+import org.apache.pdfbox.tools.PDFText2HTML;
 import org.omegat.filters2.AbstractFilter;
 import org.omegat.filters2.FilterContext;
 import org.omegat.filters2.Instance;
+import org.omegat.filters2.TranslationException;
+import org.omegat.filters2.html2.HTMLFilter2;
 import org.omegat.util.OStrings;
 
 /**
@@ -49,7 +54,10 @@ import org.omegat.util.OStrings;
 public class PdfFilter  extends AbstractFilter {
 
     private static final Pattern LINEBREAK_PATTERN = Pattern.compile("^\\s*?$");
+    private static final HTMLFilter2 HTML_FILTER = new HTMLFilter2();
     
+    boolean isHtml = true;
+
     @Override
     public String getFileFormatName() {
         return OStrings.getString("PDFFILTER_FILTER_NAME");
@@ -76,19 +84,36 @@ public class PdfFilter  extends AbstractFilter {
     public BufferedReader createReader(File infile, String encoding)
             throws IOException {
         PDFTextStripper stripper;
-        stripper = new PDFTextStripper();
+        if (isHtml) {
+            stripper = new PDFText2HTML();
+        } else {
+            stripper = new PDFTextStripper();
+        }
         stripper.setLineSeparator("\n");
         stripper.setSortByPosition(true);
 
         PDDocument document = PDDocument.load(infile);
-        String text = stripper.getText(document);
-        document.close();
-
-        return new BufferedReader(new StringReader(text));
+        try {
+            String text = stripper.getText(document);
+            if (isHtml) {
+                HTML_FILTER.setCallbacks(entryParseCallback, entryTranslateCallback);
+                return HTML_FILTER.createReader(
+                        new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_16)), "UTF-16");
+            } else {
+                return new BufferedReader(new StringReader(text));
+            }
+        } finally {
+            document.close();
+        }
     }
 
     @Override
-    public void processFile(BufferedReader in, BufferedWriter out, FilterContext fc) {
+    public void processFile(BufferedReader in, BufferedWriter out, FilterContext fc)
+            throws IOException, TranslationException {
+        if (isHtml) {
+            HTML_FILTER.processFile(in, out, fc);
+            return;
+        }
         StringBuilder sb = new StringBuilder();
 
         String s = "";

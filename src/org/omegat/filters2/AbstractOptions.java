@@ -25,6 +25,7 @@
 
 package org.omegat.filters2;
 
+import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -37,7 +38,7 @@ public abstract class AbstractOptions {
     private final Map<String, String> options;
 
     public AbstractOptions(Map<String, String> options) {
-        this.options = options;
+        this.options = options == null ? Collections.emptyMap() : options;
     }
 
     public Map<String, String> getOptionsMap() {
