@@ -1094,6 +1094,15 @@ public class AlignPanelController {
             }
             this.rowToDistance = rowToDistance;
             this.rowToBead = rowToBead;
+            if (this.rowToSourceLine != null && this.rowToTargetLine != null) {
+                int[] changedRows = Util.mergeRanges(
+                        Util.getChangedRange(this.rowToSourceLine, rowToSourceLine),
+                        Util.getChangedRange(this.rowToTargetLine, rowToTargetLine));
+                if (changedRows.length > 0) {
+                    System.out.println("Maybe firing updated: " + changedRows[0] + " to " + changedRows[1]);
+                    fireTableRowsUpdated(changedRows[0], changedRows[1]);
+                }
+            }
             this.rowToSourceLine = rowToSourceLine;
             this.rowToTargetLine = rowToTargetLine;
         }
@@ -1214,7 +1223,6 @@ public class AlignPanelController {
             Collections.sort(rows);
             List<String> selected = new ArrayList<>(rows.size());
             List<String> lines = col == COL_SRC ? rowToSourceLine : rowToTargetLine;
-            int origRowCount = getRowCount();
             MutableBead trgBead;
             if (trgRow < 0) {
                 trgBead = new MutableBead();
@@ -1241,9 +1249,6 @@ public class AlignPanelController {
                 trgLines.add(insertIndex, line);
             }
             makeCache();
-            if (origRowCount != getRowCount()) {
-                fireTableDataChanged();
-            }
             lines = col == COL_SRC ? rowToSourceLine : rowToTargetLine;
             return new int[] { Util.indexByIdentity(lines, selected.get(0)),
                     Util.indexByIdentity(lines, selected.get(selected.size() - 1)) };
@@ -1439,7 +1444,6 @@ public class AlignPanelController {
             if (!isEditableColumn(col)) {
                 throw new IllegalArgumentException();
             }
-            int origRowCount = getRowCount();
             List<String> toCombine = new ArrayList<>();
             List<String> lines = col == COL_SRC ? rowToSourceLine : rowToTargetLine;
             toCombine.add(lines.get(rows.get(0)));
@@ -1456,9 +1460,6 @@ public class AlignPanelController {
             String combined = Util.join(lang, toCombine);
             trgLines.set(Util.indexByIdentity(trgLines, toCombine.get(0)), combined);
             makeCache();
-            if (origRowCount != getRowCount()) {
-                fireTableDataChanged();
-            }
             lines = col == COL_SRC ? rowToSourceLine : rowToTargetLine;
             return Util.indexByIdentity(lines, combined);
         }
@@ -1477,7 +1478,6 @@ public class AlignPanelController {
             if (!isEditableColumn(col)) {
                 throw new IllegalArgumentException();
             }
-            int origRowCount = getRowCount();
             MutableBead trgBead = rowToBead.get(row);
             List<String> trgLines = (col == COL_SRC ? trgBead.sourceLines : trgBead.targetLines);
             String line = (col == COL_SRC ? rowToSourceLine : rowToTargetLine).get(row);
@@ -1487,9 +1487,6 @@ public class AlignPanelController {
                 trgLines.add(insertAt++, split[i]);
             }
             makeCache();
-            if (origRowCount != getRowCount()) {
-                fireTableDataChanged();
-            }
             List<String> lines = col == COL_SRC ? rowToSourceLine : rowToTargetLine;
             return new int[] { Util.indexByIdentity(lines, split[0]),
                     Util.indexByIdentity(lines, split[split.length - 1]) };
@@ -1541,7 +1538,6 @@ public class AlignPanelController {
                 // Handling traversing empty rows when sliding down requires sliding in reverse order.
                 Collections.reverse(rows);
             }
-            int origRowCount = getRowCount();
             List<String> selected = new ArrayList<>(rows.size());
             for (int row : rows) {
                 List<String> lines = col == COL_SRC ? rowToSourceLine : rowToTargetLine;
@@ -1578,9 +1574,6 @@ public class AlignPanelController {
                 trgLines.add(insertIndex, line);
             }
             makeCache();
-            if (origRowCount != getRowCount()) {
-                fireTableDataChanged();
-            }
             List<String> lines = col == COL_SRC ? rowToSourceLine : rowToTargetLine;
             int[] resultRows = new int[] { Util.indexByIdentity(lines, selected.get(0)),
                     Util.indexByIdentity(lines, selected.get(selected.size() - 1)) };
@@ -1617,7 +1610,6 @@ public class AlignPanelController {
             if (!isEditableColumn(col)) {
                 throw new IllegalArgumentException();
             }
-            int origRowCount = getRowCount();
             MutableBead bead = rowToBead.get(rows[0]);
             int beadIndex = data.indexOf(bead);
             List<String> lines = col == COL_SRC ? rowToSourceLine : rowToTargetLine;
@@ -1639,9 +1631,6 @@ public class AlignPanelController {
                 }
             }
             makeCache();
-            if (origRowCount != getRowCount()) {
-                fireTableDataChanged();
-            }
             lines = col == COL_SRC ? rowToSourceLine : rowToTargetLine;
             return new int[] { Util.indexByIdentity(lines, selected.get(0)),
                     Util.indexByIdentity(lines, selected.get(selected.size() - 1)) };

@@ -67,6 +67,53 @@ public class Util {
         return false;
     }
 
+    private static final int[] EMPTY_RANGE = new int[0];
+
+    static <T> int[] getChangedRange(List<T> list1, List<T> list2) {
+        if (list1 == null || list2 == null) {
+            throw new NullPointerException();
+        }
+        int start = -1;
+        int end = -1;
+        for (int i = 0; i < list1.size() || i < list2.size(); i++) {
+            boolean changed = false;
+            if (i >= list1.size() || i >= list2.size()) {
+                changed = true;
+            } else {
+                T item1 = list1.get(i);
+                T item2 = list2.get(i);
+                if (item1 == item2) {
+                } else if (item1 == null || item2 == null) {
+                    changed = true;
+                } else {
+                    changed = !item1.equals(item2);
+                }
+            }
+            if (changed) {
+                if (start == -1) {
+                    start = i;
+                    end = i;
+                } else {
+                    end = i;
+                }
+            }
+        }
+        if (start == -1) {
+            return EMPTY_RANGE;
+        }
+        return new int[] { start, end };
+    }
+
+    static int[] mergeRanges(int[] range1, int[] range2) {
+        if (range1.length == 0) {
+            return range2;
+        }
+        if (range2.length == 0) {
+            return range1;
+        }
+        return new int[] { Math.min(range1[0], range2[0]), Math.max(range1[1], range2[1]) };
+    }
+
     /**
      * Join a list of objects with a delimiter.
      * 
