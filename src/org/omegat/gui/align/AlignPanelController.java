@@ -631,14 +631,12 @@ public class AlignPanelController {
         int[] resultRows = model.slide(realRows, col, offset);
         int selStart = resultRows[0];
         int selEnd = resultRows[1];
-        // If we have a multi-cell selection, trim the selection so that the result remains slideable
-        if (selStart != selEnd) {
-            while (offset < 0 && !model.canMove(selStart, col, true)) {
-                selStart++;
-            }
-            while (offset > 0 && !model.canMove(selEnd, col, false)) {
-                selEnd--;
-            }
+        // Expand the selection so that the result remains slideable
+        while (offset < 0 && selStart > 0 && !model.canMove(selStart, col, true)) {
+            selStart--;
+        }
+        while (offset > 0 && selEnd < model.getRowCount() && !model.canMove(selEnd, col, false)) {
+            selEnd++;
         }
         panel.table.changeSelection(selStart, col, false, false);
         panel.table.changeSelection(selEnd, col, false, true);
