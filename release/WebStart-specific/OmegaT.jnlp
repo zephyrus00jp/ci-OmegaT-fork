@@ -34,14 +34,14 @@
 				<jar href="docs.jar" />
 				<jar href="htmlparser.jar" />
 				<jar href="jmyspell-core-1.0.0-beta-2.jar" />
-				<jar href="jna.jar" />
+				<jar href="jna-4.1.0.jar" />
 				<jar href="lib-mnemonics.jar" />
 				<jar href="swing-layout-1.0.4.jar" />
 				<jar href="vldocking-3.0.5-SNAPSHOT.jar" />
-				<jar href="svnkit-1.8.5.jar" />
+				<jar href="svnkit-1.8.12.jar" />
 				<jar href="antlr-runtime-3.4.jar" />
 				<jar href="sqljet-1.1.10.jar" />
-				<jar href="sequence-library-1.0.2.jar" />
+				<jar href="sequence-library-1.0.3.jar" />
 				<jar href="org.eclipse.jgit-3.7.1.201504261725-r.jar" />
 				<jar href="jsch-0.1.49.jar" />
 				<jar href="lucene-analyzers-3.6.2.jar" />
@@ -69,7 +69,7 @@
 				<jar href="SuperTMXMerge-for_OmegaT.jar" />
 				<jar href="slf4j-api-1.7.7.jar" />
 				<jar href="slf4j-jdk14-1.7.7.jar" />
-				<jar href="trilead-ssh2-1.0.0-build217.jar" />
+				<jar href="trilead-ssh2-1.0.0-build220.jar" />
 				<jar href="juniversalchardet-1.0.3.jar" />
 			</resources>
 			<resources os="Linux" arch="amd64">
