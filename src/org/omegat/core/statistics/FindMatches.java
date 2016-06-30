@@ -87,6 +87,10 @@ public class FindMatches {
 
     private static final boolean ALLOW_PARTIALY_MATCH = true;
 
+    private static final Pattern SEARCH_FOR_PENALTY = Pattern.compile("penalty-(\\d+)");
+
+    private static final String ORPHANED_FILE_NAME = OStrings.getString("CT_ORPHAN_STRINGS");
+
     private final ISimilarityCalculator distance = new LevenshteinDistance();
 
     /**
@@ -162,8 +166,6 @@ public class FindMatches {
         strTokensAll = tokenizeAll(srcText);
         /* HP: includes non - word tokens */
 
-        final String orphanedFileName = OStrings.getString("CT_ORPHAN_STRINGS");
-
         // travel by project entries, including orphaned
         if (project.getProjectProperties().isSupportDefaultTranslations()) {
             project.iterateByDefaultTranslations(new DefaultTranslationsIterator() {
@@ -176,7 +178,7 @@ public class FindMatches {
                     if (requiresTranslation && trans.translation == null) {
                         return;
                     }
-                    String fileName = project.isOrphaned(source) ? orphanedFileName : null;
+                    String fileName = project.isOrphaned(source) ? ORPHANED_FILE_NAME : null;
                     processEntry(null, source, trans.translation, NearString.MATCH_SOURCE.MEMORY, false, 0,
                             fileName, trans.creator, trans.creationDate, trans.changer, trans.changeDate,
                             null);
@@ -193,7 +195,7 @@ public class FindMatches {
                 if (requiresTranslation && trans.translation == null) {
                     return;
                 }
-                String fileName = project.isOrphaned(source) ? orphanedFileName : null;
+                String fileName = project.isOrphaned(source) ? ORPHANED_FILE_NAME : null;
                 processEntry(source, source.sourceText, trans.translation, NearString.MATCH_SOURCE.MEMORY,
                         false, 0, fileName, trans.creator, trans.creationDate, trans.changer,
                         trans.changeDate, null);
@@ -201,7 +203,6 @@ public class FindMatches {
         });
 
         // travel by translation memories
-        Pattern SEARCH_FOR_PENALTY = Pattern.compile("penalty-(\\d+)");
         for (Map.Entry<String, ExternalTMX> en : project.getTransMemories().entrySet()) {
             int penalty = 0;
             Matcher matcher = SEARCH_FOR_PENALTY.matcher(en.getKey());
