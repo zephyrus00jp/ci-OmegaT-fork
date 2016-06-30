@@ -28,6 +28,8 @@ package org.omegat.core.data;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.stream.Stream;
 
 import org.omegat.core.data.TMXEntry.ExternalLinked;
 import org.omegat.core.statistics.StatisticsInfo;
@@ -152,6 +154,16 @@ public class NotLoadedProject implements IProject {
 
     @Override
     public String getTargetPathForSourceFile(String sourceFile) {
+        return null;
+    }
+
+    @Override
+    public Stream<Entry<String, TMXEntry>> streamDefaultTranslations() {
+        return null;
+    }
+
+    @Override
+    public Stream<Entry<EntryKey, TMXEntry>> streamMultipleTranslations() {
         return null;
     }
 }

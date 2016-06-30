@@ -27,6 +27,8 @@ package org.omegat.languagetools;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.stream.Stream;
 
 import org.junit.Test;
 import org.omegat.core.Core;
@@ -162,6 +164,16 @@ public class FalseFriendsTest extends TestCore {
 
             @Override
             public String getTargetPathForSourceFile(String sourceFile) {
+                return null;
+            }
+
+            @Override
+            public Stream<Entry<String, TMXEntry>> streamDefaultTranslations() {
+                return null;
+            }
+
+            @Override
+            public Stream<Entry<EntryKey, TMXEntry>> streamMultipleTranslations() {
                 return null;
             }
         });
