@@ -29,6 +29,7 @@
 package org.omegat.core.matching;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
@@ -53,73 +54,59 @@ public class NearString {
         SCORE, SCORE_NO_STEM, ADJUSTED_SCORE
     }
 
-    public NearString(final EntryKey key, final String source, final String translation, MATCH_SOURCE comesFrom,
-            final boolean fuzzyMark, final int nearScore, final int nearScoreNoStem, final int adjustedScore,
-            final byte[] nearData, final String projName, final String creator, final long creationDate,
-            final String changer, final long changedDate, final List<TMXProp> props) {
+    public NearString(EntryKey key, String source, String translation, MATCH_SOURCE comesFrom, boolean fuzzyMark,
+            String projName, String creator, long creationDate, String changer, long changedDate, List<TMXProp> props,
+            Scores scores, byte[] nearData) {
         this.key = key;
         this.source = source;
         this.translation = translation;
         this.comesFrom = comesFrom;
         this.fuzzyMark = fuzzyMark;
-        this.scores = new Scores[] { new Scores(nearScore, nearScoreNoStem, adjustedScore) };
-        this.attr = nearData;
         this.projs = new String[] { projName == null ? "" : projName };
         this.props = props;
         this.creator = creator;
         this.creationDate = creationDate;
         this.changer = changer;
         this.changedDate = changedDate;
+        this.scores = new Scores[] { scores };
+        this.attr = nearData;
     }
     
-    public static NearString merge(NearString ns, final EntryKey key, final String source, final String translation,
-            MATCH_SOURCE comesFrom, final boolean fuzzyMark, final int nearScore, final int nearScoreNoStem,
-            final int adjustedScore, final byte[] nearData, final String projName, final String creator,
-            final long creationDate, final String changer, final long changedDate, final List<TMXProp> props) {
+    public static NearString merge(NearString ns1, NearString ns2) {
+
+        List<String> projs = new ArrayList<>();
+        projs.addAll(Arrays.asList(ns1.projs));
+        projs.addAll(Arrays.asList(ns2.projs));
         
-        List<String> projs = new ArrayList<String>();
-        List<Scores> scores = new ArrayList<Scores>();
-        for (String p : ns.projs) {
-            projs.add(p);
-        }
-        for (Scores s : ns.scores) {
-            scores.add(s);
-        }
+        List<Scores> scores = new ArrayList<>();
+        scores.addAll(Arrays.asList(ns1.scores));
+        scores.addAll(Arrays.asList(ns2.scores));
         
-        if (nearScore > ns.scores[0].score) {
-            projs.add(0, projName);
-            NearString merged = new NearString(key, source, translation, comesFrom, fuzzyMark, nearScore, nearScoreNoStem,
-                    adjustedScore, nearData, null, creator, creationDate, changer, changedDate, props);
-            scores.add(0, merged.scores[0]);
-            merged.projs = projs.toArray(new String[projs.size()]);
-            merged.scores = scores.toArray(new Scores[scores.size()]);
-            return merged;
-        } else {
-            projs.add(projName);
-            scores.add(new Scores(nearScore, nearScoreNoStem, adjustedScore));
-            ns.projs = projs.toArray(new String[projs.size()]);
-            ns.scores = scores.toArray(new Scores[scores.size()]);
-            return ns;
-        }
+        NearString base = ns2.scores[0].score > ns1.scores[0].score ? ns2 : ns1;
+        NearString merged = new NearString(base.key, base.source, base.translation, base.comesFrom, base.fuzzyMark,
+                null, base.creator, base.creationDate, base.changer, base.changedDate, base.props, null, base.attr);
+        merged.projs = projs.toArray(new String[projs.size()]);
+        merged.scores = scores.toArray(new Scores[scores.size()]);
+        return merged;
     }
 
-    public EntryKey key;
-    public String source;
-    public String translation;
-    public MATCH_SOURCE comesFrom;
+    final public EntryKey key;
+    final public String source;
+    final public String translation;
+    final public MATCH_SOURCE comesFrom;
     
-    public boolean fuzzyMark;
+    final public boolean fuzzyMark;
 
     public Scores[] scores;
 
     /** matching attributes of near strEntry */
     public byte[] attr;
     public String[] projs;
-    public List<TMXProp> props;
-    public String creator;
-    public long creationDate;
-    public String changer;
-    public long changedDate;
+    final public List<TMXProp> props;
+    final public String creator;
+    final public long creationDate;
+    final public String changer;
+    final public long changedDate;
 
     public static class Scores {
         public final int score;
