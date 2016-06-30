@@ -57,6 +57,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.io.IOUtils;
 import org.madlonkay.supertmxmerge.StmProperties;
@@ -1399,6 +1400,16 @@ public class RealProject implements IProject {
     }
 
     @SuppressWarnings("unchecked")
+    public Stream<Map.Entry<String, TMXEntry>> streamDefaultTranslations() {
+        Map.Entry<String, TMXEntry>[] entries;
+        synchronized (projectTMX) {
+            Set<Map.Entry<String, TMXEntry>> set = projectTMX.defaults.entrySet();
+            entries = set.toArray(new Map.Entry[set.size()]);
+        }
+        return Stream.of(entries);
+    }
+
+    @SuppressWarnings("unchecked")
     public void iterateByMultipleTranslations(MultipleTranslationsIterator it) {
         Map.Entry<EntryKey, TMXEntry>[] entries;
         synchronized (projectTMX) {
@@ -1410,6 +1421,16 @@ public class RealProject implements IProject {
         }
     }
     
+    @SuppressWarnings("unchecked")
+    public Stream<Map.Entry<EntryKey, TMXEntry>> streamMultipleTranslations() {
+        Map.Entry<EntryKey, TMXEntry>[] entries;
+        synchronized (projectTMX) {
+            Set<Map.Entry<EntryKey, TMXEntry>> set = projectTMX.alternatives.entrySet();
+            entries = set.toArray(new Map.Entry[set.size()]);
+        }
+        return Stream.of(entries);
+    }
+
     public boolean isOrphaned(String source) {
         return !checkOrphanedCallback.existSourceInProject(source);
     }
