@@ -38,6 +38,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
@@ -214,6 +215,13 @@ public class FindMatches {
                     near.attr = similarityData;
                 }
             }
+            System.out.println("Accumulating time: " + accumulating.get() + " ms");
+            System.out.println("Combining time: " + combining.get() + " ms");
+            System.out.println("Scoring time: " + scoring.get() + " ms");
+            System.out.println("Tokenizing time: " + tokenizing.get() + " ms");
+            System.out.println("Calc similarity time: " + similarity.get() + " ms");
+            System.out.println("Token cache misses: " + tokCacheMisses.get());
+            System.out.println("Token cache hits: " + tokCacheHits.get());
             return result;
         } catch (StoppedException ex) {
             return Collections.emptyList();
@@ -332,6 +340,14 @@ public class FindMatches {
         }
     }
 
+    AtomicLong accumulating = new AtomicLong();
+    AtomicLong combining = new AtomicLong();
+    AtomicLong scoring = new AtomicLong();
+    AtomicLong tokenizing = new AtomicLong();
+    AtomicLong similarity = new AtomicLong();
+    AtomicInteger tokCacheMisses = new AtomicInteger();
+    AtomicInteger tokCacheHits = new AtomicInteger();
+
     class MatchCollector implements Collector<CandidateString, List<NearString>, List<NearString>> {
 
         @Override
@@ -342,6 +358,7 @@ public class FindMatches {
         @Override
         public BiConsumer<List<NearString>, CandidateString> accumulator() {
             return (result, candidate) -> {
+                long start = System.currentTimeMillis();
                 scoreEntry(result, candidate.source, candidate.fuzzy, candidate.penalty).ifPresent(scores -> {
                     // We don't need to check haveChanceToAdd here because that
                     // check is implicit in the result of scoreEntry.
@@ -352,17 +369,20 @@ public class FindMatches {
                     //System.out.println(toAdd + " (penalty: " + candidate.penalty + ")");
                     addNearString(result, toAdd);
                 });
+                accumulating.addAndGet(System.currentTimeMillis() - start);
             };
         }
 
         @Override
         public BinaryOperator<List<NearString>> combiner() {
             return (left, right) -> {
+                long start = System.currentTimeMillis();
                 for (NearString n : right) {
                     if (haveChanceToAdd(left, n.scores[0])) {
                         addNearString(left, n);
                     }
                 }
+                combining.addAndGet(System.currentTimeMillis() - start);
                 return left;
             };
         }
@@ -387,6 +407,7 @@ public class FindMatches {
      */
     protected Optional<NearString.Scores> scoreEntry(List<NearString> result, String source, boolean fuzzy,
             int penalty) {
+        long start = System.currentTimeMillis();
         // remove part that is to be removed prior to tokenize
         String realSource = source;
         int realPenaltyForRemoved = 0;
@@ -409,7 +430,9 @@ public class FindMatches {
         ISimilarityCalculator localDistance = distance.get();
 
         // First percent value - with stemming if possible
+        long simStart = System.currentTimeMillis();
         int similarityStem = FuzzyMatcher.calcSimilarity(localDistance, strTokensStem, candTokens);
+        similarity.addAndGet(System.currentTimeMillis() - simStart);
 
         similarityStem -= penalty;
         if (fuzzy) {
@@ -420,12 +443,16 @@ public class FindMatches {
 
         // check if we have chance by first percentage only
         if (!haveChanceToAdd(result, similarityStem, Integer.MAX_VALUE, Integer.MAX_VALUE)) {
+            scoring.addAndGet(System.currentTimeMillis() - start);
             return Optional.empty();
         }
 
         Token[] candTokensNoStem = tokenizeNoStem(realSource);
         // Second percent value - without stemming
+        simStart = System.currentTimeMillis();
         int similarityNoStem = FuzzyMatcher.calcSimilarity(localDistance, strTokensNoStem, candTokensNoStem);
+        similarity.addAndGet(System.currentTimeMillis() - simStart);
+
         similarityNoStem -= penalty;
         if (fuzzy) {
             // penalty for fuzzy
@@ -435,12 +462,16 @@ public class FindMatches {
 
         // check if we have chance by first and second percentages
         if (!haveChanceToAdd(result, similarityStem, similarityNoStem, Integer.MAX_VALUE)) {
+            scoring.addAndGet(System.currentTimeMillis() - start);
             return Optional.empty();
         }
 
         Token[] candTokensAll = tokenizeAll(realSource);
         // Third percent value - with numbers, tags, etc.
+        simStart = System.currentTimeMillis();
         int simAdjusted = FuzzyMatcher.calcSimilarity(localDistance, strTokensAll, candTokensAll);
+        similarity.addAndGet(System.currentTimeMillis() - simStart);
+
         simAdjusted -= penalty;
         if (fuzzy) {
             // penalty for fuzzy
@@ -452,6 +483,7 @@ public class FindMatches {
         if (!haveChanceToAdd(result, similarityStem, similarityNoStem, simAdjusted)) {
             return Optional.empty();
         }
+        scoring.addAndGet(System.currentTimeMillis() - start);
 
         return Optional.of(new NearString.Scores(similarityStem, similarityNoStem, simAdjusted));
     }
@@ -551,38 +583,54 @@ public class FindMatches {
     final ThreadLocal<Map<String, Token[]>> tokenizeAllCache = ThreadLocal.withInitial(HashMap::new);
 
     public Token[] tokenizeStem(String str) {
+        long start = System.currentTimeMillis();
         Map<String, Token[]> cache = tokenizeStemCache.get();
         Token[] result = cache.get(str);
         if (result == null) {
+            tokCacheMisses.incrementAndGet();
             result = tok.tokenizeWords(str, ITokenizer.StemmingMode.MATCHING);
             cache.put(str, result);
+        } else {
+            tokCacheHits.incrementAndGet();
         }
+        tokenizing.addAndGet(System.currentTimeMillis() - start);
         return result;
     }
 
     public Token[] tokenizeNoStem(String str) {
+        long start = System.currentTimeMillis();
         // No-stemming token comparisons are intentionally case-insensitive
         // for matching purposes.
         str = str.toLowerCase(srcLocale);
         Map<String, Token[]> cache = tokenizeNoStemCache.get();
         Token[] result = cache.get(str);
         if (result == null) {
+            tokCacheMisses.incrementAndGet();
+
             result = tok.tokenizeWords(str, ITokenizer.StemmingMode.NONE);
             cache.put(str, result);
+        } else {
+            tokCacheHits.incrementAndGet();
         }
+        tokenizing.addAndGet(System.currentTimeMillis() - start);
         return result;
     }
 
     public Token[] tokenizeAll(String str) {
+        long start = System.currentTimeMillis();
         // Verbatim token comparisons are intentionally case-insensitive.
         // for matching purposes.
         str = str.toLowerCase(srcLocale);
         Map<String, Token[]> cache = tokenizeAllCache.get();
         Token[] result = cache.get(str);
         if (result == null) {
+            tokCacheMisses.incrementAndGet();
             result = tok.tokenizeVerbatim(str);
             cache.put(str, result);
+        } else {
+            tokCacheHits.incrementAndGet();
         }
+        tokenizing.addAndGet(System.currentTimeMillis() - start);
         return result;
     }
 
