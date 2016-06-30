@@ -37,6 +37,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
@@ -125,7 +127,7 @@ public class FindMatches {
     // This finder used for search separate segment matches
     private FindMatches separateSegmentMatcher;
 
-    private final boolean canParallelize;
+    private final boolean isParallel;
 
     /**
      * @param searchExactlyTheSame
@@ -139,7 +141,16 @@ public class FindMatches {
         srcLocale = Core.getProject().getProjectProperties().getSourceLanguage().getLocale();
         this.maxCount = maxCount;
         this.searchExactlyTheSame = searchExactlyTheSame;
-        this.canParallelize = canParallelize && Runtime.getRuntime().availableProcessors() > 1 && false;
+        this.isParallel = canParallelize;
+        if (canParallelize) {
+            this.tokenizeStemCache = new ConcurrentHashMap<>();
+            this.tokenizeNoStemCache = new ConcurrentHashMap<>();
+            this.tokenizeAllCache = new ConcurrentHashMap<>();
+        } else {
+            this.tokenizeStemCache = new HashMap<>();
+            this.tokenizeNoStemCache = new HashMap<>();
+            this.tokenizeAllCache = new HashMap<>();
+        }
         if (allowSeparateSegmentMatch) {
             separateSegmentMatcher = new FindMatches(sourceTokenizer, 1, false, true, false);
         }
@@ -190,12 +201,12 @@ public class FindMatches {
 
         if (ALLOW_PARTIALY_MATCH && separateSegmentMatcher != null
                 && !project.getProjectProperties().isSentenceSegmentingEnabled()) {
-            streams.add(getFooStream(project, requiresTranslation, stop, srcText));
+            streams.add(getSeparateSegmentStream(project, requiresTranslation, stop, srcText));
         }
 
         Stream<CandidateString> stream = streams.stream().flatMap(Function.identity())
                 .filter(c -> !requiresTranslation || c.translation != null);
-        if (canParallelize) {
+        if (isParallel) {
             stream = stream.parallel();
         }
 
@@ -258,7 +269,7 @@ public class FindMatches {
         });
     }
 
-    Stream<CandidateString> getFooStream(IProject project, boolean requiresTranslation, IStopped stop, String text) {
+    Stream<CandidateString> getSeparateSegmentStream(IProject project, boolean requiresTranslation, IStopped stop, String text) {
         // Wrap in outer stream to ensure lazy evaluation
         return Stream.of(text).flatMap(srcText -> {
             // split paragraph even when segmentation disabled, then find
@@ -340,10 +351,13 @@ public class FindMatches {
         public BiConsumer<List<NearString>, CandidateString> accumulator() {
             return (result, candidate) -> {
                 scoreEntry(result, candidate.source, candidate.fuzzy, candidate.penalty).ifPresent(scores -> {
+                    // We don't need to check haveChanceToAdd here because that
+                    // check is implicit in the result of scoreEntry.
                     NearString toAdd = new NearString(candidate.key, candidate.source, candidate.translation,
                             candidate.comesFrom, candidate.fuzzy, candidate.tmxName, candidate.creator,
                             candidate.creationDate, candidate.changer, candidate.changedDate, candidate.props, scores,
                             null);
+                    //System.out.println(toAdd + " (penalty: " + candidate.penalty + ")");
                     addNearString(result, toAdd);
                 });
             };
@@ -353,7 +367,9 @@ public class FindMatches {
         public BinaryOperator<List<NearString>> combiner() {
             return (left, right) -> {
                 for (NearString n : right) {
-                    addNearString(left, n);
+                    if (haveChanceToAdd(left, n.scores[0])) {
+                        addNearString(left, n);
+                    }
                 }
                 return left;
             };
@@ -366,7 +382,7 @@ public class FindMatches {
 
         @Override
         public Set<java.util.stream.Collector.Characteristics> characteristics() {
-            return EnumSet.of(Characteristics.IDENTITY_FINISH);
+            return EnumSet.of(Characteristics.IDENTITY_FINISH, Characteristics.UNORDERED);
         }
 
     }
@@ -381,9 +397,9 @@ public class FindMatches {
             int penalty) {
         // remove part that is to be removed prior to tokenize
         String realSource = source;
-        StringBuilder entryRemovedText = new StringBuilder();
         int realPenaltyForRemoved = 0;
         if (removePattern != null) {
+            StringBuilder entryRemovedText = new StringBuilder();
             Matcher removeMatcher = removePattern.matcher(realSource);
             while (removeMatcher.find()) {
                 entryRemovedText.append(removeMatcher.group());
@@ -398,8 +414,10 @@ public class FindMatches {
 
         Token[] candTokens = tokenizeStem(realSource);
 
+        ISimilarityCalculator localDistance = getDistanceCalculator(isParallel);
+
         // First percent value - with stemming if possible
-        int similarityStem = FuzzyMatcher.calcSimilarity(distance, strTokensStem, candTokens);
+        int similarityStem = FuzzyMatcher.calcSimilarity(localDistance, strTokensStem, candTokens);
 
         similarityStem -= penalty;
         if (fuzzy) {
@@ -415,7 +433,7 @@ public class FindMatches {
 
         Token[] candTokensNoStem = tokenizeNoStem(realSource);
         // Second percent value - without stemming
-        int similarityNoStem = FuzzyMatcher.calcSimilarity(distance, strTokensNoStem, candTokensNoStem);
+        int similarityNoStem = FuzzyMatcher.calcSimilarity(localDistance, strTokensNoStem, candTokensNoStem);
         similarityNoStem -= penalty;
         if (fuzzy) {
             // penalty for fuzzy
@@ -430,7 +448,7 @@ public class FindMatches {
 
         Token[] candTokensAll = tokenizeAll(realSource);
         // Third percent value - with numbers, tags, etc.
-        int simAdjusted = FuzzyMatcher.calcSimilarity(distance, strTokensAll, candTokensAll);
+        int simAdjusted = FuzzyMatcher.calcSimilarity(localDistance, strTokensAll, candTokensAll);
         simAdjusted -= penalty;
         if (fuzzy) {
             // penalty for fuzzy
@@ -444,6 +462,14 @@ public class FindMatches {
         }
 
         return Optional.of(new NearString.Scores(similarityStem, similarityNoStem, simAdjusted));
+    }
+
+    protected ISimilarityCalculator getDistanceCalculator(boolean newInstance) {
+        return newInstance ? new LevenshteinDistance() : distance;
+    }
+
+    protected boolean haveChanceToAdd(List<NearString> result, NearString.Scores scores) {
+        return haveChanceToAdd(result, scores.score, scores.scoreNoStem, scores.adjustedScore);
     }
 
     /**
@@ -476,7 +502,7 @@ public class FindMatches {
         return chance != 1;
     }
 
-    private int checkScore(final int storedScore, final int checkedStore) {
+    protected static int checkScore(final int storedScore, final int checkedStore) {
         return storedScore < checkedStore ? -1
                 : storedScore > checkedStore ? 1 : 0;
     }
@@ -524,7 +550,7 @@ public class FindMatches {
         }
     }
 
-    static boolean canMerge(NearString ns1, NearString ns2) {
+    protected static boolean canMerge(NearString ns1, NearString ns2) {
         return ns1.source.equals(ns2.source)
                 && (ns1.translation == ns2.translation || ns1.translation.equals(ns2.translation));
     }
@@ -532,9 +558,9 @@ public class FindMatches {
     /*
      * Methods for tokenize strings with caching.
      */
-    Map<String, Token[]> tokenizeStemCache = new HashMap<String, Token[]>();
-    Map<String, Token[]> tokenizeNoStemCache = new HashMap<String, Token[]>();
-    Map<String, Token[]> tokenizeAllCache = new HashMap<String, Token[]>();
+    final Map<String, Token[]> tokenizeStemCache;
+    final Map<String, Token[]> tokenizeNoStemCache;
+    final Map<String, Token[]> tokenizeAllCache;
 
     public Token[] tokenizeStem(String str) {
         Token[] result = tokenizeStemCache.get(str);

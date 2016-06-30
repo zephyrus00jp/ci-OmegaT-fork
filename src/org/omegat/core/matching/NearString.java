@@ -30,6 +30,7 @@ package org.omegat.core.matching;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -77,10 +78,12 @@ public class NearString {
         List<String> projs = new ArrayList<>();
         projs.addAll(Arrays.asList(ns1.projs));
         projs.addAll(Arrays.asList(ns2.projs));
+        Collections.sort(projs);
         
         List<Scores> scores = new ArrayList<>();
         scores.addAll(Arrays.asList(ns1.scores));
         scores.addAll(Arrays.asList(ns2.scores));
+        Collections.sort(scores, new ScoresComparator());
         
         NearString base = ns2.scores[0].score > ns1.scores[0].score ? ns2 : ns1;
         NearString merged = new NearString(base.key, base.source, base.translation, base.comesFrom, base.fuzzyMark,
@@ -123,13 +126,9 @@ public class NearString {
         
         public String toString() {
             StringBuilder b = new StringBuilder();
-            b.append("(");
-            b.append(score);
-            b.append("/");
-            b.append(scoreNoStem);
-            b.append("/");
-            b.append(adjustedScore);
-            b.append("%)");
+            b.append("(").append(score).append("/");
+            b.append(scoreNoStem).append("/");
+            b.append(adjustedScore).append("%)");
             return b.toString();
         }
     }
@@ -139,7 +138,7 @@ public class NearString {
         private final SORT_KEY key;
         
         public ScoresComparator() {
-            this.key = Preferences.getPreferenceEnumDefault(Preferences.EXT_TMX_SORT_KEY, SORT_KEY.SCORE);
+            this(Preferences.getPreferenceEnumDefault(Preferences.EXT_TMX_SORT_KEY, SORT_KEY.SCORE));
         }
         
         public ScoresComparator(SORT_KEY key) {
@@ -222,5 +221,11 @@ public class NearString {
         public int compare(NearString o1, NearString o2) {
             return c.compare(o1.scores[0], o2.scores[0]);
         }
+    }
+
+    @Override
+    public String toString() {
+        return String.join(" ", source.substring(0, source.offsetByCodePoints(0, Math.min(20, source.length()))),
+                scores[0].toString(), "x" + scores.length);
     }
 }

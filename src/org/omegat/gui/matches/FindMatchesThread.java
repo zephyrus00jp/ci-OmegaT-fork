@@ -85,8 +85,9 @@ public class FindMatchesThread extends EntryInfoSearchThread<List<NearString>> {
         }
 
         try {
+            boolean parallel = Runtime.getRuntime().availableProcessors() > 1;
             FindMatches finder = new FindMatches(project.getSourceTokenizer(), OConsts.MAX_NEAR_STRINGS, true, false,
-                    true);
+                    parallel);
             List<NearString> result = finder.search(project, processedEntry.getSrcText(), true, true,
                     new IStopped() {
                         public boolean isStopped() {
@@ -97,7 +98,8 @@ public class FindMatchesThread extends EntryInfoSearchThread<List<NearString>> {
             if (LOGGER.isLoggable(Level.FINER)) {
                 // only if need to be logged
                 long after = System.currentTimeMillis();
-                LOGGER.finer("Time for find matches: " + (after - before));
+                LOGGER.finer(
+                        "Time for find matches: " + (after - before) + (parallel ? " (parallel)" : " (sequential)"));
             }
             return result;
         } catch (FindMatches.StoppedException ex) {
