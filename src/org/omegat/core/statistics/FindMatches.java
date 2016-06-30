@@ -37,7 +37,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.BinaryOperator;
@@ -99,7 +98,7 @@ public class FindMatches {
 
     private static final String ORPHANED_FILE_NAME = OStrings.getString("CT_ORPHAN_STRINGS");
 
-    private final ISimilarityCalculator distance = new LevenshteinDistance();
+    private final ThreadLocal<ISimilarityCalculator> distance = ThreadLocal.withInitial(LevenshteinDistance::new);
 
     /**
      * the removePattern that was configured by the user.
@@ -125,7 +124,7 @@ public class FindMatches {
     private Token[] strTokensAll;
 
     // This finder used for search separate segment matches
-    private FindMatches separateSegmentMatcher;
+    private ThreadLocal<FindMatches> separateSegmentMatcher;
 
     private final boolean isParallel;
 
@@ -142,17 +141,9 @@ public class FindMatches {
         this.maxCount = maxCount;
         this.searchExactlyTheSame = searchExactlyTheSame;
         this.isParallel = canParallelize;
-        if (canParallelize) {
-            this.tokenizeStemCache = new ConcurrentHashMap<>();
-            this.tokenizeNoStemCache = new ConcurrentHashMap<>();
-            this.tokenizeAllCache = new ConcurrentHashMap<>();
-        } else {
-            this.tokenizeStemCache = new HashMap<>();
-            this.tokenizeNoStemCache = new HashMap<>();
-            this.tokenizeAllCache = new HashMap<>();
-        }
         if (allowSeparateSegmentMatch) {
-            separateSegmentMatcher = new FindMatches(sourceTokenizer, 1, false, true, false);
+            separateSegmentMatcher = ThreadLocal
+                    .withInitial(() -> new FindMatches(sourceTokenizer, 1, false, true, false));
         }
     }
 
@@ -289,7 +280,8 @@ public class FindMatches {
                 String onesrc = segments.get(i);
 
                 // find match for separate segment
-                List<NearString> segmentMatch = separateSegmentMatcher.search(project, onesrc, requiresTranslation,
+                List<NearString> segmentMatch = separateSegmentMatcher.get().search(project, onesrc,
+                        requiresTranslation,
                         false, stop);
                 if (!segmentMatch.isEmpty() && segmentMatch.get(0).scores[0].score >= SUBSEGMENT_MATCH_THRESHOLD) {
                     fsrc.add(segmentMatch.get(0).source);
@@ -414,7 +406,7 @@ public class FindMatches {
 
         Token[] candTokens = tokenizeStem(realSource);
 
-        ISimilarityCalculator localDistance = getDistanceCalculator(isParallel);
+        ISimilarityCalculator localDistance = distance.get();
 
         // First percent value - with stemming if possible
         int similarityStem = FuzzyMatcher.calcSimilarity(localDistance, strTokensStem, candTokens);
@@ -462,10 +454,6 @@ public class FindMatches {
         }
 
         return Optional.of(new NearString.Scores(similarityStem, similarityNoStem, simAdjusted));
-    }
-
-    protected ISimilarityCalculator getDistanceCalculator(boolean newInstance) {
-        return newInstance ? new LevenshteinDistance() : distance;
     }
 
     protected boolean haveChanceToAdd(List<NearString> result, NearString.Scores scores) {
@@ -558,15 +546,16 @@ public class FindMatches {
     /*
      * Methods for tokenize strings with caching.
      */
-    final Map<String, Token[]> tokenizeStemCache;
-    final Map<String, Token[]> tokenizeNoStemCache;
-    final Map<String, Token[]> tokenizeAllCache;
+    final ThreadLocal<Map<String, Token[]>> tokenizeStemCache = ThreadLocal.withInitial(HashMap::new);
+    final ThreadLocal<Map<String, Token[]>> tokenizeNoStemCache = ThreadLocal.withInitial(HashMap::new);
+    final ThreadLocal<Map<String, Token[]>> tokenizeAllCache = ThreadLocal.withInitial(HashMap::new);
 
     public Token[] tokenizeStem(String str) {
-        Token[] result = tokenizeStemCache.get(str);
+        Map<String, Token[]> cache = tokenizeStemCache.get();
+        Token[] result = cache.get(str);
         if (result == null) {
             result = tok.tokenizeWords(str, ITokenizer.StemmingMode.MATCHING);
-            tokenizeStemCache.put(str, result);
+            cache.put(str, result);
         }
         return result;
     }
@@ -575,10 +564,11 @@ public class FindMatches {
         // No-stemming token comparisons are intentionally case-insensitive
         // for matching purposes.
         str = str.toLowerCase(srcLocale);
-        Token[] result = tokenizeNoStemCache.get(str);
+        Map<String, Token[]> cache = tokenizeNoStemCache.get();
+        Token[] result = cache.get(str);
         if (result == null) {
             result = tok.tokenizeWords(str, ITokenizer.StemmingMode.NONE);
-            tokenizeNoStemCache.put(str, result);
+            cache.put(str, result);
         }
         return result;
     }
@@ -587,10 +577,11 @@ public class FindMatches {
         // Verbatim token comparisons are intentionally case-insensitive.
         // for matching purposes.
         str = str.toLowerCase(srcLocale);
-        Token[] result = tokenizeAllCache.get(str);
+        Map<String, Token[]> cache = tokenizeAllCache.get();
+        Token[] result = cache.get(str);
         if (result == null) {
             result = tok.tokenizeVerbatim(str);
-            tokenizeAllCache.put(str, result);
+            cache.put(str, result);
         }
         return result;
     }
