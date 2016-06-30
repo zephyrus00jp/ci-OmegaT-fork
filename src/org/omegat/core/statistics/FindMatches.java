@@ -200,7 +200,10 @@ public class FindMatches {
         }
 
         try {
-            List<NearString> result = stream.collect(new MatchCollector());
+            List<NearString> result = stream.filter(o -> {
+                checkStopped(stop);
+                return true;
+            }).collect(new MatchCollector());
             if (fillSimilarityData) {
                 // fill similarity data only for result
                 for (NearString near : result) {
