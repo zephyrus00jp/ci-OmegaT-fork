@@ -40,6 +40,7 @@ import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -172,14 +173,17 @@ public class FindMatches {
         strTokensAll = tokenizeAll(srcText);
         /* HP: includes non - word tokens */
 
+        // skip original==original entry comparison
+        Predicate<CandidateString> sameFilter = c -> searchExactlyTheSame || !c.source.equals(originalText);
+        
         // travel by project entries, including orphaned
         if (project.getProjectProperties().isSupportDefaultTranslations()) {
-            streams.add(getDefaultTranslationsStream(project, requiresTranslation, originalText));
+            streams.add(getDefaultTranslationsStream(project).filter(sameFilter));
         }
-        streams.add(getMultipleTranslationsStream(project, requiresTranslation, originalText));
+        streams.add(getMultipleTranslationsStream(project).filter(sameFilter));
 
         // travel by translation memories
-        streams.add(getTMStream(project, requiresTranslation));
+        streams.add(getTMStream(project));
 
         // travel by all entries for check source file translations
         streams.add(getEntriesStream(project));
@@ -189,7 +193,8 @@ public class FindMatches {
             streams.add(getFooStream(project, requiresTranslation, stop, srcText));
         }
 
-        Stream<CandidateString> stream = streams.stream().flatMap(Function.identity());
+        Stream<CandidateString> stream = streams.stream().flatMap(Function.identity())
+                .filter(c -> !requiresTranslation || c.translation != null);
         if (canParallelize) {
             stream = stream.parallel();
         }
@@ -210,18 +215,8 @@ public class FindMatches {
         }
     }
 
-    Stream<CandidateString> getDefaultTranslationsStream(IProject project, boolean requiresTranslation,
-            String originalText) {
-        return project.streamDefaultTranslations().filter(e -> {
-            if (!searchExactlyTheSame && e.getKey().equals(originalText)) {
-                // skip original==original entry comparison
-                return false;
-            }
-            if (requiresTranslation && e.getValue().translation == null) {
-                return false;
-            }
-            return true;
-        }).map(e -> {
+    Stream<CandidateString> getDefaultTranslationsStream(IProject project) {
+        return project.streamDefaultTranslations().map(e -> {
             String source = e.getKey();
             TMXEntry trans = e.getValue();
             String fileName = project.isOrphaned(source) ? ORPHANED_FILE_NAME : null;
@@ -230,18 +225,8 @@ public class FindMatches {
         });
     }
 
-    Stream<CandidateString> getMultipleTranslationsStream(IProject project, boolean requiresTranslation,
-            String originalText) {
-        return project.streamMultipleTranslations().filter(e -> {
-            if (!searchExactlyTheSame && e.getKey().sourceText.equals(originalText)) {
-                // skip original==original entry comparison
-                return false;
-            }
-            if (requiresTranslation && e.getValue().translation == null) {
-                return false;
-            }
-            return true;
-        }).map(e -> {
+    Stream<CandidateString> getMultipleTranslationsStream(IProject project) {
+        return project.streamMultipleTranslations().map(e -> {
             EntryKey source = e.getKey();
             TMXEntry trans = e.getValue();
             String fileName = project.isOrphaned(source) ? ORPHANED_FILE_NAME : null;
@@ -250,16 +235,11 @@ public class FindMatches {
         });
     }
 
-    Stream<CandidateString> getTMStream(IProject project, boolean requiresTranslation) {
+    Stream<CandidateString> getTMStream(IProject project) {
         return project.getTransMemories().entrySet().stream().flatMap(en -> {
             Matcher matcher = SEARCH_FOR_PENALTY.matcher(en.getKey());
             int penalty = matcher.find() ? Integer.parseInt(matcher.group(1)) : 0;
-            return en.getValue().getEntries().stream().filter(tmen -> {
-                if (requiresTranslation && tmen.translation == null) {
-                    return false;
-                }
-                return true;
-            }).map(tmen -> {
+            return en.getValue().getEntries().stream().map(tmen -> {
                 return new CandidateString(null, tmen.source, tmen.translation, NearString.MATCH_SOURCE.TM, false,
                         penalty, en.getKey(), tmen.creator, tmen.creationDate, tmen.changer, tmen.changeDate,
                         tmen.otherProperties);
@@ -400,14 +380,14 @@ public class FindMatches {
         String realSource = source;
         StringBuilder entryRemovedText = new StringBuilder();
         int realPenaltyForRemoved = 0;
-        if (this.removePattern != null) {
+        if (removePattern != null) {
             Matcher removeMatcher = removePattern.matcher(realSource);
             while (removeMatcher.find()) {
-                entryRemovedText.append(source.substring(removeMatcher.start(), removeMatcher.end()));
+                entryRemovedText.append(removeMatcher.group());
             }
             realSource = removeMatcher.replaceAll("");
             // calculate penalty if something has been removed, otherwise different strings get 100% match.
-            if (!entryRemovedText.toString().equals(this.removedText)) {
+            if (!entryRemovedText.toString().equals(removedText)) {
                 // penalty for different 'removed'-part
                 realPenaltyForRemoved = PENALTY_FOR_REMOVED;
             }
