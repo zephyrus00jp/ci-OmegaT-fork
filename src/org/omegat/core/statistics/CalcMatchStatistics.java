@@ -320,12 +320,22 @@ public class CalcMatchStatistics extends LongProcessThread {
 
     int treated, percent;
 
+    long lastUpdate = 0L;
+    int lastTreated = 0;
+
     void entryProcessed() {
         treated++;
         int newPercent = treated * 100 / entriesToProcess;
         if (percent != newPercent) {
             callback.showProgress(newPercent);
             percent = newPercent;
+            long now = System.currentTimeMillis();
+            if (lastUpdate != 0L) {
+                System.out.println("Speed: " + ((double) (treated - lastTreated) / (now - lastUpdate) * 1000)
+                        + " entries/s");
+            }
+            lastUpdate = now;
+            lastTreated = treated;
         }
     }
 }
