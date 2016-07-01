@@ -215,11 +215,13 @@ public class FindMatches {
                     near.attr = similarityData;
                 }
             }
-            System.out.println("Accumulating time: " + accumulating.get() + " ms");
-            System.out.println("Combining time: " + combining.get() + " ms");
-            System.out.println("Scoring time: " + scoring.get() + " ms");
+            System.out.println(
+                    "Accumulating time: " + accumulating.get() + " ms (" + accumulatingN.get() + " invocations)");
+            System.out.println("Combining time: " + combining.get() + " ms (" + combiningN.get() + " invocations)");
+            System.out.println("Scoring time: " + scoring.get() + " ms (" + scoringN.get() + " invocations)");
             System.out.println("Tokenizing time: " + tokenizing.get() + " ms");
-            System.out.println("Calc similarity time: " + similarity.get() + " ms");
+            System.out.println(
+                    "Calc similarity time: " + similarity.get() + " ms (" + similarityN.get() + " invocations)");
             System.out.println("Token cache misses: " + tokCacheMisses.get());
             System.out.println("Token cache hits: " + tokCacheHits.get());
             return result;
@@ -341,10 +343,14 @@ public class FindMatches {
     }
 
     AtomicLong accumulating = new AtomicLong();
+    AtomicInteger accumulatingN = new AtomicInteger();
     AtomicLong combining = new AtomicLong();
+    AtomicInteger combiningN = new AtomicInteger();
     AtomicLong scoring = new AtomicLong();
+    AtomicInteger scoringN = new AtomicInteger();
     AtomicLong tokenizing = new AtomicLong();
     AtomicLong similarity = new AtomicLong();
+    AtomicInteger similarityN = new AtomicInteger();
     AtomicInteger tokCacheMisses = new AtomicInteger();
     AtomicInteger tokCacheHits = new AtomicInteger();
 
@@ -370,6 +376,7 @@ public class FindMatches {
                     addNearString(result, toAdd);
                 });
                 accumulating.addAndGet(System.currentTimeMillis() - start);
+                accumulatingN.incrementAndGet();
             };
         }
 
@@ -383,6 +390,7 @@ public class FindMatches {
                     }
                 }
                 combining.addAndGet(System.currentTimeMillis() - start);
+                combiningN.incrementAndGet();
                 return left;
             };
         }
@@ -408,6 +416,7 @@ public class FindMatches {
     protected Optional<NearString.Scores> scoreEntry(List<NearString> result, String source, boolean fuzzy,
             int penalty) {
         long start = System.currentTimeMillis();
+        scoringN.incrementAndGet();
         // remove part that is to be removed prior to tokenize
         String realSource = source;
         int realPenaltyForRemoved = 0;
@@ -433,6 +442,7 @@ public class FindMatches {
         long simStart = System.currentTimeMillis();
         int similarityStem = FuzzyMatcher.calcSimilarity(localDistance, strTokensStem, candTokens);
         similarity.addAndGet(System.currentTimeMillis() - simStart);
+        similarityN.incrementAndGet();
 
         similarityStem -= penalty;
         if (fuzzy) {
@@ -452,6 +462,7 @@ public class FindMatches {
         simStart = System.currentTimeMillis();
         int similarityNoStem = FuzzyMatcher.calcSimilarity(localDistance, strTokensNoStem, candTokensNoStem);
         similarity.addAndGet(System.currentTimeMillis() - simStart);
+        similarityN.incrementAndGet();
 
         similarityNoStem -= penalty;
         if (fuzzy) {
@@ -471,6 +482,7 @@ public class FindMatches {
         simStart = System.currentTimeMillis();
         int simAdjusted = FuzzyMatcher.calcSimilarity(localDistance, strTokensAll, candTokensAll);
         similarity.addAndGet(System.currentTimeMillis() - simStart);
+        similarityN.incrementAndGet();
 
         simAdjusted -= penalty;
         if (fuzzy) {
