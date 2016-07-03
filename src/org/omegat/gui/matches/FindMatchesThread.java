@@ -79,9 +79,12 @@ public class FindMatchesThread extends EntryInfoSearchThread<List<NearString>> {
         long before = System.currentTimeMillis();
 
         try {
-            FindMatches finder = new FindMatches(project, OConsts.MAX_NEAR_STRINGS, true, false);
+            boolean isParallel = Runtime.getRuntime().availableProcessors() > 1;
+            FindMatches finder = new FindMatches(project, OConsts.MAX_NEAR_STRINGS, true, false, isParallel);
             List<NearString> result = finder.search(processedEntry.getSrcText(), true, true, this::isEntryChanged);
-            LOGGER.finer(() -> "Time for find matches: " + (System.currentTimeMillis() - before));
+            LOGGER.finer(() -> String.join(" ", "Time for find matches:",
+                    Long.toString(System.currentTimeMillis() - before),
+                    isParallel ? "(parallel)" : "(sequential)"));
             return result;
         } catch (FindMatches.StoppedException ex) {
             throw new EntryChangedException();

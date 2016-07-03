@@ -55,49 +55,47 @@ public class NearString {
     }
 
     public NearString(final EntryKey key, final String source, final String translation, MATCH_SOURCE comesFrom,
-            final boolean fuzzyMark, final int nearScore, final int nearScoreNoStem, final int adjustedScore,
-            final byte[] nearData, final String projName, final String creator, final long creationDate,
-            final String changer, final long changedDate, final List<TMXProp> props) {
+            final boolean fuzzyMark, final String projName, final String creator, final long creationDate,
+            final String changer, final long changedDate, final List<TMXProp> props, final Scores scores,
+            final byte[] nearData) {
         this.key = key;
         this.source = source;
         this.translation = translation;
         this.comesFrom = comesFrom;
         this.fuzzyMark = fuzzyMark;
-        this.scores = new Scores[] { new Scores(nearScore, nearScoreNoStem, adjustedScore) };
-        this.attr = nearData;
         this.projs = new String[] { projName == null ? "" : projName };
         this.props = props;
         this.creator = creator;
         this.creationDate = creationDate;
         this.changer = changer;
         this.changedDate = changedDate;
+        this.scores = new Scores[] { scores };
+        this.attr = nearData;
     }
     
-    public static NearString merge(NearString ns, final EntryKey key, final String source, final String translation,
-            MATCH_SOURCE comesFrom, final boolean fuzzyMark, final int nearScore, final int nearScoreNoStem,
-            final int adjustedScore, final byte[] nearData, final String projName, final String creator,
-            final long creationDate, final String changer, final long changedDate, final List<TMXProp> props) {
-
+    public static NearString merge(NearString ns1, NearString ns2) {
         List<String> projs = new ArrayList<>();
-        List<Scores> scores = new ArrayList<>();
-        projs.addAll(Arrays.asList(ns.projs));
-        scores.addAll(Arrays.asList(ns.scores));
+        projs.addAll(Arrays.asList(ns1.projs));
+        projs.addAll(Arrays.asList(ns2.projs));
 
-        NearString merged;
-        if (nearScore > ns.scores[0].score) {
-            merged = new NearString(key, source, translation, comesFrom, fuzzyMark, nearScore,
-                    nearScoreNoStem, adjustedScore, nearData, null, creator, creationDate, changer, changedDate, props);
-            projs.add(0, projName);
-            scores.add(0, merged.scores[0]);
-        } else {
-            merged = new NearString(ns.key, ns.source, ns.translation, ns.comesFrom, ns.fuzzyMark, nearScore,
-                    nearScoreNoStem, adjustedScore, ns.attr, null, ns.creator, ns.creationDate, ns.changer,
-                    ns.changedDate, ns.props);
-            projs.add(projName);
-            scores.add(merged.scores[0]);
+        List<Scores> scores = new ArrayList<>();
+        scores.addAll(Arrays.asList(ns1.scores));
+        scores.addAll(Arrays.asList(ns2.scores));
+        List<Scores> sortedScores = new ArrayList<>(scores);
+        Comparator<Scores> scoreComp = new ScoresComparator(SORT_KEY.SCORE).reversed();
+        sortedScores.sort(scoreComp);
+
+        List<String> sortedProjs = new ArrayList<>();
+        for (Scores s : sortedScores) {
+            int i = scores.indexOf(s);
+            sortedProjs.add(projs.get(i));
         }
-        merged.projs = projs.toArray(new String[projs.size()]);
-        merged.scores = scores.toArray(new Scores[scores.size()]);
+
+        NearString base = scoreComp.compare(ns1.scores[0], ns2.scores[0]) <= 0 ? ns1 : ns2;
+        NearString merged = new NearString(base.key, base.source, base.translation, base.comesFrom, base.fuzzyMark,
+                null, base.creator, base.creationDate, base.changer, base.changedDate, base.props, null, base.attr);
+        merged.projs = sortedProjs.toArray(new String[sortedProjs.size()]);
+        merged.scores = sortedScores.toArray(new Scores[sortedScores.size()]);
         return merged;
     }
 
