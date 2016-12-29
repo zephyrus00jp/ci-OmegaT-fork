@@ -479,29 +479,33 @@ public class MainWindowMenuHandler {
     }
 
     public void editFindInProjectMenuItemActionPerformed() {
-        if (!Core.getProject().isProjectLoaded())
+        if (!Core.getProject().isProjectLoaded()) {
             return;
-
-        SearchWindowController search = new SearchWindowController(SearchMode.SEARCH);
-        mainWindow.addSearchWindow(search);
-
-        search.makeVisible(getTrimmedSelectedTextInMainWindow());
+        }
+        openSearchWindow(Preferences.isPreference(Preferences.SEARCHWINDOW_REUSE_EXISTING));
     }
 
     void findInProjectReuseLastWindow() {
         if (!Core.getProject().isProjectLoaded()) {
             return;
         }
+        openSearchWindow(!Preferences.isPreference(Preferences.SEARCHWINDOW_REUSE_EXISTING));
+    }
 
-        List<SearchWindowController> windows = mainWindow.getSearchWindows();
-        for (int i = windows.size() - 1; i >= 0; i--) {
-            SearchWindowController swc = windows.get(i);
-            if (swc.getMode() == SearchMode.SEARCH) {
-                swc.makeVisible(getTrimmedSelectedTextInMainWindow());
-                return;
+    void openSearchWindow(boolean reuseExisting) {
+        if (reuseExisting) {
+            List<SearchWindowController> windows = mainWindow.getSearchWindows();
+            for (int i = windows.size() - 1; i >= 0; i--) {
+                SearchWindowController swc = windows.get(i);
+                if (swc.getMode() == SearchMode.SEARCH) {
+                    swc.makeVisible(getTrimmedSelectedTextInMainWindow());
+                    return;
+                }
             }
         }
-        editFindInProjectMenuItemActionPerformed();
+        SearchWindowController search = new SearchWindowController(SearchMode.SEARCH);
+        mainWindow.addSearchWindow(search);
+        search.makeVisible(getTrimmedSelectedTextInMainWindow());
     }
 
     public void editReplaceInProjectMenuItemActionPerformed() {
