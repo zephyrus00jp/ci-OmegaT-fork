@@ -25,6 +25,7 @@
 package org.omegat.gui.shortcuts;
 
 import java.awt.Component;
+import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -106,6 +107,14 @@ public class PropertiesShortcuts {
             throw new IllegalArgumentException("Key '" + key + "' is not found.");
         }
         return KeyStroke.getKeyStroke(shortcut);
+    }
+
+    public String getShortcutText(String key) {
+        KeyStroke keyStroke = getKeyStroke(key);
+        // We use KeyEvent methods here instead of KeyStroke ones because
+        // the former are localizable via Toolkit properties
+        return KeyEvent.getKeyModifiersText(keyStroke.getModifiers()) + "+"
+                + KeyEvent.getKeyText(keyStroke.getKeyCode());
     }
 
     public void bindKeyStrokes(JMenuBar menu) {
