@@ -58,7 +58,7 @@ public class AutoTmxTest extends TestCase {
         props.setTargetLanguage("fr");
         props.setTargetTokenizer(LuceneFrenchTokenizer.class);
         File file = new File("test/data/autotmx/auto1.tmx");
-        ExternalTMX autoTMX = new ExternalTMX(props, file, false, false);
+        IExternalTM autoTMX = new ExternalTMX(props, file, false, false);
 
         PrepareTMXEntry e1 = autoTMX.getEntries().get(0);
         checkListValues(e1, ProjectTMX.PROP_XICE, "11");

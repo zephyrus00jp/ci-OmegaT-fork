@@ -1296,7 +1296,7 @@ public class RealProject implements IProject {
     /**
      * Append new translation from auto TMX.
      */
-    void appendFromAutoTMX(ExternalTMX tmx, boolean isEnforcedTMX) {
+    void appendFromAutoTMX(IExternalTM tmx, boolean isEnforcedTMX) {
         synchronized (projectTMX) {
             importHandler.process(tmx, isEnforcedTMX);
         }
