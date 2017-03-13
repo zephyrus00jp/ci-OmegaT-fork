@@ -1216,8 +1216,7 @@ public class RealProject implements IProject {
     private void loadTM() throws IOException {
         File tmRoot = new File(m_config.getTMRoot());
         tmMonitor = new DirectoryMonitor(tmRoot, file -> {
-            if (!file.getName().toLowerCase().endsWith(OConsts.TMX_EXTENSION)
-                    && !file.getName().toLowerCase().endsWith(OConsts.TMX_GZ_EXTENSION)) {
+            if (!ExternalTMs.isSupportedFormat(file)) {
                 // not a TMX file
                 return;
             }
@@ -1229,9 +1228,7 @@ public class RealProject implements IProject {
             Map<String, IExternalTM> newTransMemories = new TreeMap<>(transMemories);
             if (file.exists()) {
                 try {
-                    IExternalTM newTM = new ExternalTMX(m_config, file,
-                            Preferences.isPreference(Preferences.EXT_TMX_SHOW_LEVEL2),
-                            Preferences.isPreference(Preferences.EXT_TMX_USE_SLASH));
+                    IExternalTM newTM = ExternalTMs.load(file);
                     newTransMemories.put(file.getPath(), newTM);
 
                     //
