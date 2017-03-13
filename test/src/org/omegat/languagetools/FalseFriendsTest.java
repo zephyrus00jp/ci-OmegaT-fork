@@ -112,6 +112,7 @@ public class FalseFriendsTest extends TestCore {
                 return null;
             }
 
+            @Deprecated
             public Map<String, ExternalTMX> getTransMemories() {
                 return null;
             }

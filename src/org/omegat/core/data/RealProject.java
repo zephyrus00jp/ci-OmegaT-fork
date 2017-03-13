@@ -49,6 +49,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.Stack;
@@ -176,7 +177,7 @@ public class RealProject implements IProject {
      * This map recreated each time when files changed. So, you can free use it without thinking about
      * synchronization.
      */
-    private Map<String, ExternalTMX> transMemories = new TreeMap<String, ExternalTMX>();
+    private Map<String, IExternalTM> transMemories = new TreeMap<>();
     
     /**
      * Storage for all translation memories of translations to other languages.
@@ -1225,23 +1226,23 @@ public class RealProject implements IProject {
                 return;
             }
             // create new translation memories map
-            Map<String, ExternalTMX> newTransMemories = new TreeMap<String, ExternalTMX>(transMemories);
+            Map<String, IExternalTM> newTransMemories = new TreeMap<>(transMemories);
             if (file.exists()) {
                 try {
-                    ExternalTMX newTMX = new ExternalTMX(m_config, file,
+                    IExternalTM newTM = new ExternalTMX(m_config, file,
                             Preferences.isPreference(Preferences.EXT_TMX_SHOW_LEVEL2),
                             Preferences.isPreference(Preferences.EXT_TMX_USE_SLASH));
-                    newTransMemories.put(file.getPath(), newTMX);
+                    newTransMemories.put(file.getPath(), newTM);
 
                     //
                     // Please note the use of "/". FileUtil.computeRelativePath rewrites all other
                     // directory separators into "/".
                     //
                     if (FileUtil.computeRelativePath(tmRoot, file).startsWith(OConsts.AUTO_TM + "/")) {
-                        appendFromAutoTMX(newTMX, false);
+                        appendFromAutoTMX(newTM, false);
                     } else if (FileUtil.computeRelativePath(tmRoot, file)
                             .startsWith(OConsts.AUTO_ENFORCE_TM + '/')) {
-                        appendFromAutoTMX(newTMX, true);
+                        appendFromAutoTMX(newTM, true);
                     }
 
                 } catch (Exception e) {
@@ -1515,12 +1516,19 @@ public class RealProject implements IProject {
         return !checkOrphanedCallback.existEntryInProject(entry);
     }
 
+    @Deprecated
     public Map<String, ExternalTMX> getTransMemories() {
-        return transMemories;
+        return transMemories.entrySet().stream().filter(e -> e.getValue() instanceof ExternalTMX)
+                .collect(Collectors.toMap(Entry::getKey, e -> (ExternalTMX) e.getValue()));
+    }
+
+    @Override
+    public Map<String, ? extends IExternalTM> getAllTransMemories() {
+        return Collections.unmodifiableMap(transMemories);
     }
 
     public Map<Language, ProjectTMX> getOtherTargetLanguageTMs() {
-        return otherTargetLangTMs;
+        return Collections.unmodifiableMap(otherTargetLangTMs);
     }
 
     /**

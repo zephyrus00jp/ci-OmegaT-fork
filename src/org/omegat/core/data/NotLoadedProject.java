@@ -84,6 +84,7 @@ public class NotLoadedProject implements IProject {
         return false;
     }
 
+    @Deprecated
     public Map<String, ExternalTMX> getTransMemories() {
         return null;
     }
