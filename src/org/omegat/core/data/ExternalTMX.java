@@ -27,15 +27,8 @@
  **************************************************************************/
 package org.omegat.core.data;
 
-import java.io.File;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import org.omegat.core.Core;
-import org.omegat.util.Language;
-import org.omegat.util.StringUtil;
-import org.omegat.util.TMXReader2;
 
 /**
  * Class for store data from TMX from /tm/ folder. They are used only for fuzzy matches.
@@ -50,94 +43,9 @@ public class ExternalTMX {
 
     private final List<PrepareTMXEntry> entries;
 
-    private ExternalTMX(String name, List<PrepareTMXEntry> entries) {
+    ExternalTMX(String name, List<PrepareTMXEntry> entries) {
         this.name = name;
         this.entries = entries;
-    }
-
-    public static class Loader {
-        private final File file;
-        private boolean extTmxLevel2;
-        private boolean useSlash;
-
-        public Loader(File file) {
-            this.file = file;
-        }
-
-        public Loader setExtTmxLevel2(boolean extTmxLevel2) {
-            this.extTmxLevel2 = extTmxLevel2;
-            return this;
-        }
-
-        public Loader setUseSlash(boolean useSlash) {
-            this.useSlash = useSlash;
-            return this;
-        }
-
-        public ExternalTMX load(boolean doSegmenting, Language sourceLang, Language targetLang)
-                throws Exception {
-            return new ExternalTMX(file.getName(), loadImpl(file, doSegmenting, sourceLang, targetLang));
-        }
-
-        private List<PrepareTMXEntry> loadImpl(File file, boolean doSegmenting, Language sourceLang,
-                Language targetLang) throws Exception {
-            List<PrepareTMXEntry> entries = new ArrayList<>();
-
-            TMXReader2.LoadCallback loader = new TMXReader2.LoadCallback() {
-                public boolean onEntry(TMXReader2.ParsedTu tu, TMXReader2.ParsedTuv tuvSource,
-                        TMXReader2.ParsedTuv tuvTarget, boolean isParagraphSegtype) {
-                    if (tuvSource == null) {
-                        return false;
-                    }
-
-                    if (tuvTarget != null) {
-                        // add only target Tuv
-                        addTuv(tu, tuvSource, tuvTarget, isParagraphSegtype);
-                    } else {
-                        // add all non-source Tuv
-                        for (int i = 0; i < tu.tuvs.size(); i++) {
-                            if (tu.tuvs.get(i) != tuvSource) {
-                                addTuv(tu, tuvSource, tu.tuvs.get(i), isParagraphSegtype);
-                            }
-                        }
-                    }
-                    return true;
-                }
-
-                private void addTuv(TMXReader2.ParsedTu tu, TMXReader2.ParsedTuv tuvSource,
-                        TMXReader2.ParsedTuv tuvTarget, boolean isParagraphSegtype) {
-                    String changer = StringUtil.nvl(tuvTarget.changeid, tuvTarget.creationid, tu.changeid,
-                            tu.creationid);
-                    String creator = StringUtil.nvl(tuvTarget.creationid, tu.creationid);
-                    long changed = StringUtil.nvlLong(tuvTarget.changedate, tuvTarget.creationdate,
-                            tu.changedate, tu.creationdate);
-                    long created = StringUtil.nvlLong(tuvTarget.creationdate, tu.creationdate);
-
-                    List<String> sources = new ArrayList<String>();
-                    List<String> targets = new ArrayList<String>();
-                    Core.getSegmenter().segmentEntries(doSegmenting && isParagraphSegtype, sourceLang,
-                            tuvSource.text, targetLang, tuvTarget.text, sources, targets);
-
-                    for (int i = 0; i < sources.size(); i++) {
-                        PrepareTMXEntry te = new PrepareTMXEntry();
-                        te.source = sources.get(i);
-                        te.translation = targets.get(i);
-                        te.changer = changer;
-                        te.changeDate = changed;
-                        te.creator = creator;
-                        te.creationDate = created;
-                        te.note = tu.note;
-                        te.otherProperties = tu.props;
-                        entries.add(te);
-                    }
-                }
-            };
-
-            TMXReader2 reader = new TMXReader2();
-            reader.readTMX(file, sourceLang, targetLang, doSegmenting, false, extTmxLevel2, useSlash, loader);
-
-            return entries;
-        }
     }
 
     public String getName() {

@@ -69,8 +69,8 @@ public class TmxSegmentationTest extends TestCase {
 
     @Test
     public void testExternalTMX() throws Exception {
-        ExternalTMX tmx = new ExternalTMX.Loader(new File("test/data/tmx/resegmenting.tmx")).load(
-                true, new Language("en"), new Language("fr"));
+        ExternalTMX tmx = new ExternalTMFactory.TMXLoader(new File("test/data/tmx/resegmenting.tmx"))
+                .setDoSegmenting(true).load(new Language("en"), new Language("fr"));
 
         assertEquals(2, tmx.getEntries().size());
         assertEquals("This is test.", tmx.getEntries().get(0).source);

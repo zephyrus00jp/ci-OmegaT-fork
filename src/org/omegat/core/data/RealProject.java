@@ -1215,7 +1215,7 @@ public class RealProject implements IProject {
     private void loadTM() throws IOException {
         File tmRoot = new File(m_config.getTMRoot());
         tmMonitor = new DirectoryMonitor(tmRoot, file -> {
-            if (!ExternalTMs.isSupportedFormat(file)) {
+            if (!ExternalTMFactory.isSupportedFormat(file)) {
                 // not a TMX file
                 return;
             }
@@ -1227,7 +1227,7 @@ public class RealProject implements IProject {
             Map<String, ExternalTMX> newTransMemories = new TreeMap<>(transMemories);
             if (file.exists()) {
                 try {
-                    ExternalTMX newTM = ExternalTMs.load(file);
+                    ExternalTMX newTM = ExternalTMFactory.load(file);
                     newTransMemories.put(file.getPath(), newTM);
 
                     //
