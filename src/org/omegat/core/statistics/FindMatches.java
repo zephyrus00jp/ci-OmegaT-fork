@@ -38,7 +38,7 @@ import java.util.regex.Pattern;
 
 import org.omegat.core.Core;
 import org.omegat.core.data.EntryKey;
-import org.omegat.core.data.IExternalTM;
+import org.omegat.core.data.ExternalTMX;
 import org.omegat.core.data.IProject;
 import org.omegat.core.data.IProject.DefaultTranslationsIterator;
 import org.omegat.core.data.IProject.MultipleTranslationsIterator;
@@ -206,7 +206,7 @@ public class FindMatches {
         });
 
         // travel by translation memories
-        for (Map.Entry<String, ? extends IExternalTM> en : project.getAllTransMemories().entrySet()) {
+        for (Map.Entry<String, ExternalTMX> en : project.getTransMemories().entrySet()) {
             int penalty = 0;
             Matcher matcher = SEARCH_FOR_PENALTY.matcher(en.getKey());
             if (matcher.find()) {

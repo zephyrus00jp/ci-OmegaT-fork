@@ -199,21 +199,9 @@ public interface IProject {
      * Get TMX-formatted translation memories from the <code>/tm/</code> folder.
      * Does not include TMs in formats other than TMX.
      * 
-     * @return translation memories (TMX-format only)
-     * @deprecated Use {@link #getAllTransMemories()} to get all TM data
+     * @return translation memories
      */
-    @Deprecated
     Map<String, ExternalTMX> getTransMemories();
-
-    /**
-     * Get all translation memories from the <code>/tm/</code> folder.
-     * 
-     * @return translation memories in all supported formats
-     * @since 4.1.1
-     */
-    default Map<String, ? extends IExternalTM> getAllTransMemories() {
-        return getTransMemories();
-    }
 
     /**
      * Get all translation memories from /other_lang/ folder.

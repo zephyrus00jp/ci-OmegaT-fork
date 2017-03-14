@@ -44,7 +44,7 @@ import org.omegat.util.TMXReader2;
  * @author Thomas CORDONNIER
  * @author Aaron Madlon-Kay
  */
-public class ExternalTMX implements IExternalTM {
+public class ExternalTMX {
 
     private final String name;
 
@@ -140,18 +140,10 @@ public class ExternalTMX implements IExternalTM {
         }
     }
 
-    /* (non-Javadoc)
-     * @see org.omegat.core.data.IExternalTM#getName()
-     */
-    @Override
     public String getName() {
         return name;
     }
 
-    /* (non-Javadoc)
-     * @see org.omegat.core.data.IExternalTM#getEntries()
-     */
-    @Override
     public List<PrepareTMXEntry> getEntries() {
         return Collections.unmodifiableList(entries);
     }

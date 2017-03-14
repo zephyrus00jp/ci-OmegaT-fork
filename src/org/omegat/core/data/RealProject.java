@@ -49,7 +49,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.Stack;
@@ -177,7 +176,7 @@ public class RealProject implements IProject {
      * This map recreated each time when files changed. So, you can free use it without thinking about
      * synchronization.
      */
-    private Map<String, IExternalTM> transMemories = new TreeMap<>();
+    private Map<String, ExternalTMX> transMemories = new TreeMap<>();
     
     /**
      * Storage for all translation memories of translations to other languages.
@@ -1225,10 +1224,10 @@ public class RealProject implements IProject {
                 return;
             }
             // create new translation memories map
-            Map<String, IExternalTM> newTransMemories = new TreeMap<>(transMemories);
+            Map<String, ExternalTMX> newTransMemories = new TreeMap<>(transMemories);
             if (file.exists()) {
                 try {
-                    IExternalTM newTM = ExternalTMs.load(file);
+                    ExternalTMX newTM = ExternalTMs.load(file);
                     newTransMemories.put(file.getPath(), newTM);
 
                     //
@@ -1294,7 +1293,7 @@ public class RealProject implements IProject {
     /**
      * Append new translation from auto TMX.
      */
-    void appendFromAutoTMX(IExternalTM tmx, boolean isEnforcedTMX) {
+    void appendFromAutoTMX(ExternalTMX tmx, boolean isEnforcedTMX) {
         synchronized (projectTMX) {
             importHandler.process(tmx, isEnforcedTMX);
         }
@@ -1513,14 +1512,7 @@ public class RealProject implements IProject {
         return !checkOrphanedCallback.existEntryInProject(entry);
     }
 
-    @Deprecated
     public Map<String, ExternalTMX> getTransMemories() {
-        return transMemories.entrySet().stream().filter(e -> e.getValue() instanceof ExternalTMX)
-                .collect(Collectors.toMap(Entry::getKey, e -> (ExternalTMX) e.getValue()));
-    }
-
-    @Override
-    public Map<String, ? extends IExternalTM> getAllTransMemories() {
         return Collections.unmodifiableMap(transMemories);
     }
 

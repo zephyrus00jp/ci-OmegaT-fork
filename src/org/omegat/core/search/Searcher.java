@@ -47,7 +47,7 @@ import java.util.regex.Pattern;
 
 import org.omegat.core.Core;
 import org.omegat.core.data.EntryKey;
-import org.omegat.core.data.IExternalTM;
+import org.omegat.core.data.ExternalTMX;
 import org.omegat.core.data.IProject;
 import org.omegat.core.data.IProject.FileInfo;
 import org.omegat.core.data.ParseEntry;
@@ -342,7 +342,7 @@ public class Searcher {
             // They are not loaded from external TM, so skip the search in
             // that case.
             if (!expression.searchAuthor && !expression.searchDateAfter && !expression.searchDateBefore) {
-                for (Map.Entry<String, ? extends IExternalTM> tmEn : m_project.getAllTransMemories().entrySet()) {
+                for (Map.Entry<String, ExternalTMX> tmEn : m_project.getTransMemories().entrySet()) {
                     final String fileTM = tmEn.getKey();
                     if (!searchEntries(tmEn.getValue().getEntries(), fileTM)) return;
                     checkStop.checkInterrupted();

@@ -49,7 +49,7 @@ public class ExternalTMs {
         return SUPPORTED_FORMATS.stream().anyMatch(fmt -> name.endsWith(fmt));
     }
 
-    public static IExternalTM load(File file) throws Exception {
+    public static ExternalTMX load(File file) throws Exception {
         String name = file.getName().toLowerCase();
         ProjectProperties props = Core.getProject().getProjectProperties();
         if (name.endsWith(OConsts.TMX_EXTENSION) || name.endsWith(OConsts.TMX_GZ_EXTENSION)) {
