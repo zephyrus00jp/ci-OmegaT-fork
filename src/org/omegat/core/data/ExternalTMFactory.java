@@ -238,8 +238,10 @@ public class ExternalTMFactory {
                             if (source == null || target == null) {
                                 return;
                             }
-                            source = StringUtil.normalizeUnicode(ParseEntry.stripSomeChars(source,
-                                    THROWAWAY, removeTags, removeSpaces));
+                            source = StringUtil.normalizeUnicode(
+                                    ParseEntry.stripSomeChars(source, THROWAWAY, removeTags, removeSpaces));
+                            target = StringUtil.normalizeUnicode(
+                                    ParseEntry.stripSomeChars(target, THROWAWAY, removeTags, removeSpaces));
                             if (!source.trim().isEmpty()) {
                                 PrepareTMXEntry entry = new PrepareTMXEntry();
                                 entry.source = source;
