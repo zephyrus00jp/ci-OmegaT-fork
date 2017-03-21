@@ -819,6 +819,45 @@ bintray {
     publications = ['bintray']
 }
 
+remotes {
+    sourceforgeWeb {
+        host = 'web.sourceforge.net'
+        user = findProperty('sourceforgeWebUser')
+        password = findProperty('sourceforgeWebPassword')
+        if (!password) {
+            def ident = findProperty('sourceforgeWebIdentity')
+            identity = ident ? file(ident) : null
+            passphrase = findProperty('sourceforgeWebPassphrase')
+        }
+    }
+}
+
+task publishManual {
+    description = 'Copy the manual to SourceForge web.'
+    doLast {
+        ssh.run {
+            session(remotes.sourceforgeWeb) {
+                def root = '/home/project-web/omegat/htdocs'
+                def timestamp = new Date().format('yyyyMMddHHmmss')
+                def tempDir = "manual-temp-${timestamp}"
+                def manualDir = "manual-${omtVersion.beta.empty ? 'standard' : 'latest'}"
+                sftp {
+                    cd root
+                    mkdir tempDir
+                }
+                put from: webManual.outputs.files, into: "${root}/${tempDir}"
+                sftp {
+                    cd root
+                    try { rename manualDir, "${manualDir}-old-${timestamp}" }
+                        catch (ignored) {}
+                    rename "${tempDir}/${webManual.destinationDir.name}", manualDir
+                    rmdir tempDir
+                }
+            }
+        }
+    }
+}
+
 // Allow setting the max heap size for the run task from the command line, e.g.
 // `gradle -PrunMaxHeapSize=1024M run`
 run.maxHeapSize = findProperty('runMaxHeapSize')
