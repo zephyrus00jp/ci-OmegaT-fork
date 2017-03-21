@@ -795,6 +795,49 @@ bintray {
     publications = ['forBintray']
 }
 
+remotes {
+    sourceforgeWeb {
+        host = 'web.sourceforge.net'
+        user = findProperty('sourceforgeWebUser')
+        password = findProperty('sourceforgeWebPassword')
+        if (!password) {
+            def ident = findProperty('sourceforgeWebIdentity')
+            identity = ident ? file(ident) : null
+            passphrase = findProperty('sourceforgeWebPassphrase')
+        }
+    }
+}
+
+task publishManual {
+    description = 'Copy the manual to SourceForge web.'
+    doLast {
+        ssh.run {
+            session(remotes.sourceforgeWeb) {
+                def root = '/home/project-web/omegat/htdocs'
+                def timestamp = new Date().format('yyyyMMddHHmmss')
+                def tempDir = "manual-temp-${timestamp}"
+                def manualVer = omtVersion.beta.empty ? 'standard' : 'latest'
+                def manualDir = "manual-${manualVer}"
+                sftp {
+                    cd root
+                    mkdir tempDir
+                }
+                put from: 'docs', into: "${root}/${tempDir}"
+                put from: 'release/doc-license.txt', into: "${root}/${tempDir}/docs"
+                put from: genDocIndex.outputs.files.filter { it.name == 'index.html' },
+                    into: "${root}/${tempDir}/docs"
+                sftp {
+                    cd root
+                    try { rename manualDir, "${manualDir}-old-${timestamp}" }
+                    catch (ignored) {}
+                    rename "${tempDir}/docs", "${manualDir}"
+                    rmdir tempDir
+                }
+            }
+        }
+    }
+}
+
 // Allow setting the max heap size for the run task from the command line, e.g.
 // `gradle -PrunMaxHeapSize=1024M run`
 run.maxHeapSize = findProperty('runMaxHeapSize')
