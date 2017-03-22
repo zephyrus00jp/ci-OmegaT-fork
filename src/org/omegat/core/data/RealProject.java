@@ -1681,11 +1681,16 @@ public class RealProject implements IProject {
             SourceTextEntry srcTextEntry = new SourceTextEntry(ek, allProjectEntries.size() + 1, props,
                     segmentTranslation, protectedParts);
             srcTextEntry.setSourceTranslationFuzzy(segmentTranslationFuzzy);
-            allProjectEntries.add(srcTextEntry);
-            fileInfo.entries.add(srcTextEntry);
 
-            existSource.add(segmentSource);
-            existKeys.add(srcTextEntry.getKey());
+            if (isReferenceEntry(props)) { // check for "reference", "true" pair
+                // collect to ExternalTMX and add result to transMemories map
+            } else {
+                allProjectEntries.add(srcTextEntry);
+                fileInfo.entries.add(srcTextEntry);
+
+                existSource.add(segmentSource);
+                existKeys.add(srcTextEntry.getKey());
+            }
         }
     };
 

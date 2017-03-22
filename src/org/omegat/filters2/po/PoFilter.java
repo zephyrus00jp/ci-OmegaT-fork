@@ -619,8 +619,11 @@ public class PoFilter extends AbstractFilter {
             } else {
                 List<ProtectedPart> protectedParts = TagUtil.applyCustomProtectedParts(source,
                         PatternConsts.PRINTF_VARS, null);
-                entryParseCallback.addEntry(null, source, translation, fuzzy, comments, path + pathSuffix,
-                        this, protectedParts);
+                String[] props = isReferenceEntry()
+                        ? new String[] { "comment", comments, "reference", "true" }
+                        : new String[] { "comment", comments };
+                entryParseCallback.addEntryWithProperties(null, source, translation, fuzzy, props,
+                        path + pathSuffix, this, protectedParts);
             }
         } else if (entryAlignCallback != null) {
             entryAlignCallback.addTranslation(null, source, translation, fuzzy, path + pathSuffix, this);
