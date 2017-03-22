@@ -44,6 +44,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.omegat.core.data.ProtectedPart;
+import org.omegat.core.data.SegmentProperties;
 import org.omegat.filters2.AbstractFilter;
 import org.omegat.filters2.FilterContext;
 import org.omegat.filters2.Instance;
@@ -620,8 +621,8 @@ public class PoFilter extends AbstractFilter {
                 List<ProtectedPart> protectedParts = TagUtil.applyCustomProtectedParts(source,
                         PatternConsts.PRINTF_VARS, null);
                 String[] props = isReferenceEntry()
-                        ? new String[] { "comment", comments, "reference", "true" }
-                        : new String[] { "comment", comments };
+                        ? new String[] { SegmentProperties.COMMENT, comments, SegmentProperties.REFERENCE, "true" }
+                        : new String[] { SegmentProperties.COMMENT, comments };
                 entryParseCallback.addEntryWithProperties(null, source, translation, fuzzy, props,
                         path + pathSuffix, this, protectedParts);
             }

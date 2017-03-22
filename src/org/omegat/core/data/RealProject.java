@@ -1682,7 +1682,7 @@ public class RealProject implements IProject {
                     segmentTranslation, protectedParts);
             srcTextEntry.setSourceTranslationFuzzy(segmentTranslationFuzzy);
 
-            if (isReferenceEntry(props)) { // check for "reference", "true" pair
+            if (SegmentProperties.isReferenceEntry(props)) { // check for "reference", "true" pair
                 // collect to ExternalTMX and add result to transMemories map
             } else {
                 allProjectEntries.add(srcTextEntry);
