@@ -66,6 +66,9 @@ public class SegmentProperties {
     }
 
     public static boolean isReferenceEntry(String[] props) {
+				if (props == null) {
+            return null;
+        }
         String value = getProperty(props, REFERENCE);
         return Boolean.parseBoolean(value);
     }
