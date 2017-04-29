@@ -67,8 +67,9 @@ public class POFilterTest extends TestFilterBase {
 
         checkMultiStart(fi, f);
         checkMultiProps("source1", null, "some context", null, null, SegmentProperties.COMMENT, comment);
-        checkMultiProps("source2", null, "", null, null, SegmentProperties.COMMENT, null, SegmentProperties.REFERENCE,
-                "true");
+        // Segment #2 is a reference segment, so it's not included in the regular segments.
+        // checkMultiProps("source2", null, "", null, null, SegmentProperties.COMMENT, null,
+        // SegmentProperties.REFERENCE, "true");
         checkMultiProps("source3", null, "", null, null, noComment);
         checkMultiProps("source1", null, "", null, null, noComment);
         checkMultiProps("source1", null, "other context", null, null, noComment);
