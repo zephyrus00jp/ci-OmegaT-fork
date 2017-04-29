@@ -1701,13 +1701,13 @@ public class RealProject implements IProject {
                     tmBuilder = new ExternalTMFactory.Builder(new File(entryKeyFilename).getName());
                 }
                 tmBuilder.addEntry(segmentSource, segmentTranslation, id, path, props);
-            } else {
-                allProjectEntries.add(srcTextEntry);
-                fileInfo.entries.add(srcTextEntry);
-
-                existSource.add(segmentSource);
-                existKeys.add(srcTextEntry.getKey());
             }
+
+            allProjectEntries.add(srcTextEntry);
+            fileInfo.entries.add(srcTextEntry);
+
+            existSource.add(segmentSource);
+            existKeys.add(srcTextEntry.getKey());
         }
     };
 
