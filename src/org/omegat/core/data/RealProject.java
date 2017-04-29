@@ -11,6 +11,7 @@
                2013 Aaron Madlon-Kay, Didier Briel
                2014 Aaron Madlon-Kay, Didier Briel
                2015 Aaron Madlon-Kay
+               2017 Aaron Madlon-Kay
                Home page: http://www.omegat.org/
                Support center: http://groups.yahoo.com/group/OmegaT/
 
@@ -1701,13 +1702,14 @@ public class RealProject implements IProject {
                     tmBuilder = new ExternalTMFactory.Builder(new File(entryKeyFilename).getName());
                 }
                 tmBuilder.addEntry(segmentSource, segmentTranslation, id, path, props);
+            } else {
+                
+                allProjectEntries.add(srcTextEntry);
+                fileInfo.entries.add(srcTextEntry);
+
+                existSource.add(segmentSource);
+                existKeys.add(srcTextEntry.getKey());
             }
-
-            allProjectEntries.add(srcTextEntry);
-            fileInfo.entries.add(srcTextEntry);
-
-            existSource.add(segmentSource);
-            existKeys.add(srcTextEntry.getKey());
         }
     };
 
