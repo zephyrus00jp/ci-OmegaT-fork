@@ -32,7 +32,8 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import org.junit.Test;
-import org.omegat.core.data.IProject;
+import org.omegat.core.data.ExternalTMX;
+import org.omegat.core.data.PrepareTMXEntry;
 import org.omegat.core.data.SegmentProperties;
 import org.omegat.filters2.po.PoFilter;
 import org.omegat.util.OStrings;
@@ -57,7 +58,7 @@ public class POFilterTest extends TestFilterBase {
         String f = "test/data/filters/po/file-POFilter-multiple.po";
         Map<String, String> options = new TreeMap<String, String>();
         options.put("skipHeader", "true");
-        IProject.FileInfo fi = loadSourceFiles(new PoFilter(), f, options);
+        TestFileInfo fi = loadSourceFiles(new PoFilter(), f, options);
 
         String comment = OStrings.getString("POFILTER_TRANSLATOR_COMMENTS") + "\n"
                 + "A valid comment\nAnother valid comment\n\n" + OStrings.getString("POFILTER_EXTRACTED_COMMENTS")
@@ -79,6 +80,12 @@ public class POFilterTest extends TestFilterBase {
         checkMultiProps("source4", null, "one more context[2]", null, null, SegmentProperties.COMMENT,
                 StringUtil.format(OStrings.getString("POFILTER_PLURAL_FORM_COMMENT"), 2) + "\n");
         checkMultiEnd();
+
+        ExternalTMX tmEntries = fi.referenceEntries;
+        assertEquals(1, tmEntries.getEntries().size());
+        PrepareTMXEntry entry = tmEntries.getEntries().get(0);
+        assertEquals("source2", entry.source);
+        assertEquals("trans2", entry.translation);
     }
 
     @Test
