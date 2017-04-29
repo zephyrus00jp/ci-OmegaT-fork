@@ -42,6 +42,7 @@ public class SegmentProperties {
 
     // Standard keys
     public static final String COMMENT = "comment";
+    public static final String REFERENCE = "reference";
 
     public static boolean isEmpty(String[] props) {
         return props == null || props.length == 0;
