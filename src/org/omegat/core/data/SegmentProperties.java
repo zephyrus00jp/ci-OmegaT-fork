@@ -64,4 +64,21 @@ public class SegmentProperties {
         return IntStream.range(0, props.length).filter(i -> i % 2 != 0).mapToObj(i -> props[i])
                 .collect(Collectors.joining("\n"));
     }
+
+    public static boolean isReferenceEntry(String[] props) {
+        if (isEmpty(props)) {
+            return false;
+        }
+        String value = getProperty(props, REFERENCE);
+        return Boolean.parseBoolean(value);
+    }
+
+    public static String getProperty(String[] props, String key) {
+        for (int i = 0; i < props.length; i++) {
+            if (key.equals(props[i])) {
+                return props[i + 1];
+            }
+        }
+        return null;
+    }
 }
