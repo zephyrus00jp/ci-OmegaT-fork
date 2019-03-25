@@ -188,6 +188,16 @@ yand_m :horizontal -> yand_t ;
 yand_t "Enter your Yandex Translate API key. It can be requested at\nhttps://api.yandex.com/key/form.xml?service=trnsl" -> @ ;
 yand_hc :horizontal -> @close="Close" ;
 
+# MT-HUB Translate
+
+MTHUB " MT-HUB Translate API key" -> MTHUB_k MTHUB_help ;
+MTHUB_k "MT-HUB Translate API key" -> @password="" ;
+
+MTHUB_help :dialog "Help" -> MTHUB_m MTHUB_hc ;
+MTHUB_m :horizontal -> MTHUB_t ;
+MTHUB_t "Enter your MT-HUB Translate API key. If you don’t know yours, please contact help@prompsit.com" -> @ ;
+MTHUB_hc :horizontal -> @close="Close" ;
+
 
 ### Appearance settings tab
 
@@ -279,4 +289,5 @@ close_button -> @close="Cancel" ;
 
 ### Launch command
 
-omt -> javaloc " -jar " memory " -Duser.language=" UIlang " -Duser.country=" country " -Dgoogle.api.key=" gt " -Dmicrosoft.api.subscription_key=" ms_azk " -Dibmwatson.api.login=" ibm_login " -Dibmwatson.api.password=" ibm_pass " -Ddeepl.api.key=" deepl " -Dmymemory.api.email=" mymem_em " -Dmymemory.api.key=" mymem_api " -Dtaas.user.key=" taas " -Dyandex.api.key=" yand " -Dhttp.proxyHost=" proxyhost " -Dhttp.proxyPort=" proxyport " -Dawt.useSystemAAFontSettings=" fontaa laf " " jarfileloc " " projectloc " --config-dir=" configloc team ;
+omt -> javaloc " -jar " memory " -Duser.language=" UIlang " -Duser.country=" country " -Dgoogle.api.key=" gt " -Dmicrosoft.api.subscription_key=" ms_azk " -Dibmwatson.api.login=" ibm_login " -Dibmwatson.api.password=" ibm_pass " -Ddeepl.api.key=" deepl " -Dmymemory.api.email=" mymem_em " -Dmymemory.api.key=" mymem_api " -Dtaas.user.key=" taas " -Dyandex.api.key=" yand " -Dmthub.api.key=" mthub " -Dhttp.proxyHost=" proxyhost " -Dhttp.proxyPort=" proxyport " -Dawt.useSystemAAFontSettings=" fontaa laf " " jarfileloc " " projectloc " --config-dir=" configloc team ;
+
