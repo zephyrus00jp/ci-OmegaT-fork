@@ -120,6 +120,9 @@ public class SVNRemoteRepository2 implements IRemoteRepository2 {
                     toRev, SVNDepth.INFINITY, false);
             Log.logInfoRB("SVN_FINISH", "checkout");
         } catch (Exception ex) {
+            if (url.toString().equals("https://github.com/omegat-org/omegat.git/trunk/doc_src/ent")) {
+                throw new NetworkException(ex);
+            }
             Log.logErrorRB("SVN_ERROR", "checkout", ex.getMessage());
             checkNetworkException(ex);
             throw ex;
