@@ -365,7 +365,9 @@ public final class StaticUIUtils {
         if (Platform.isMacOSX()) {
             icons = Arrays.asList(OSXIntegration.APP_ICON_MAC);
         } else {
-            icons = Arrays.asList(ResourcesUtil.APP_ICON_16X16, ResourcesUtil.APP_ICON_32X32);
+            icons = Arrays.asList(ResourcesUtil.APP_ICON_16X16, ResourcesUtil.APP_ICON_24X24,
+                    ResourcesUtil.APP_ICON_32X32, ResourcesUtil.APP_ICON_48X48, ResourcesUtil.APP_ICON_64X64,
+                    ResourcesUtil.APP_ICON_128X128, ResourcesUtil.APP_ICON_256X256);
         }
         window.setIconImages(icons);
     }

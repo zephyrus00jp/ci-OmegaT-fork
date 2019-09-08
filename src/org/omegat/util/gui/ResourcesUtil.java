@@ -47,8 +47,13 @@ public final class ResourcesUtil {
      * @see <a href="http://iconhandbook.co.uk/reference/chart/">Icon Reference
      *      Chart</a>
      */
-    public static final Image APP_ICON_32X32 = getBundledImage("OmegaT.gif");
-    public static final Image APP_ICON_16X16 = getBundledImage("OmegaT_small.gif");
+    public static final Image APP_ICON_16X16 = getBundledImage("icon_16x16.png");
+    public static final Image APP_ICON_24X24 = getBundledImage("icon_24x24.png");
+    public static final Image APP_ICON_32X32 = getBundledImage("icon_32x32.png");
+    public static final Image APP_ICON_48X48 = getBundledImage("icon_48x48.png");
+    public static final Image APP_ICON_64X64 = getBundledImage("icon_64x64.png");
+    public static final Image APP_ICON_128X128 = getBundledImage("icon_128x128.png");
+    public static final Image APP_ICON_256X256 = getBundledImage("OmegaT_mac.png");
 
     /**
      * Load icon.
