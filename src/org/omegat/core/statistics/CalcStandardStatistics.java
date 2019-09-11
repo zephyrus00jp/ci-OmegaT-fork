@@ -29,12 +29,22 @@
 package org.omegat.core.statistics;
 
 import java.io.File;
+import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.TimeZone;
+
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 
 import org.omegat.core.Core;
 import org.omegat.core.data.IProject;
@@ -97,6 +107,10 @@ public class CalcStandardStatistics extends LongProcessThread {
             true, true, true, true, true, true, true, true, true, };
 
     private final StatisticsPanel callback;
+    
+    public static enum StatOutputMode { TEXT, XML };
+    
+    public static StatOutputMode outputMode = StatOutputMode.TEXT;
 
     public CalcStandardStatistics(StatisticsPanel callback) {
         this.callback = callback;
@@ -138,10 +152,7 @@ public class CalcStandardStatistics extends LongProcessThread {
     public static String buildProjectStats(final IProject project, final StatisticsInfo hotStat,
             final StatisticsPanel callback) {
 
-        StatCount total = new StatCount();
-        StatCount remaining = new StatCount();
-        StatCount unique = new StatCount();
-        StatCount remainingUnique = new StatCount();
+        ProjectStats projectStats = new ProjectStats(project); 
 
         // find unique segments
         Map<String, SourceTextEntry> uniqueSegment = new HashMap<String, SourceTextEntry>();
@@ -166,23 +177,23 @@ public class CalcStandardStatistics extends LongProcessThread {
             StatCount count = new StatCount(en.getValue());
 
             // add to unique
-            unique.add(count);
+            projectStats.unique.add(count);
             filesUnique.add(en.getValue().getKey().file);
             // add to unique remaining
             if (!translated.contains(en.getKey())) {
-                remainingUnique.add(count);
+                projectStats.remainingUnique.add(count);
                 filesRemainingUnique.add(en.getValue().getKey().file);
             }
         }
-        unique.addFiles(filesUnique.size());
-        remainingUnique.addFiles(filesRemainingUnique.size());
+        projectStats.unique.addFiles(filesUnique.size());
+        projectStats.remainingUnique.addFiles(filesRemainingUnique.size());
 
-        List<FileData> counts = new ArrayList<FileData>();
+        //List<FileData> counts = new ArrayList<FileData>();
         Map<String, Boolean> firstSeenUniqueSegment = new HashMap<String, Boolean>();
         for (FileInfo file : project.getProjectFiles()) {
             FileData numbers = new FileData();
             numbers.filename = file.filePath;
-            counts.add(numbers);
+            projectStats.files.add(numbers);
             int fileTotal = 0;
             int fileRemaining = 0;
             for (SourceTextEntry ste : file.entries) {
@@ -195,13 +206,13 @@ public class CalcStandardStatistics extends LongProcessThread {
                 StatCount count = new StatCount(ste);
 
                 // add to total
-                total.add(count);
+                projectStats.total.add(count);
                 fileTotal = 1;
 
                 // add to remaining
                 TMXEntry tr = project.getTranslationInfo(ste);
                 if (!tr.isTranslated()) {
-                    remaining.add(count);
+                    projectStats.remaining.add(count);
                     fileRemaining = 1;
                 }
 
@@ -222,16 +233,117 @@ public class CalcStandardStatistics extends LongProcessThread {
                     numbers.remaining.add(count);
                 }
             }
-            total.addFiles(fileTotal);
-            remaining.addFiles(fileRemaining);
+            projectStats.total.addFiles(fileTotal);
+            projectStats.remaining.addFiles(fileRemaining);
         }
 
+        if (hotStat != null) {
+            hotStat.numberOfSegmentsTotal = projectStats.total.segments;
+            hotStat.numberofTranslatedSegments = translated.size();
+            hotStat.numberOfUniqueSegments = projectStats.unique.segments;
+            hotStat.uniqueCountsByFile.clear();
+            for (FileData fd : projectStats.files) {
+                hotStat.uniqueCountsByFile.put(fd.filename, fd.unique.segments);
+            }
+        }
+
+        if (outputMode == StatOutputMode.XML) {
+            try {
+                return getXmlResults(projectStats, callback);
+            } catch (XMLStreamException e) {
+                e.printStackTrace();
+                return null;
+            }
+        } else {
+            return getTextResults(projectStats, callback);
+        }
+    }
+
+    private static String getXmlResults(ProjectStats stats, StatisticsPanel callback) throws XMLStreamException {
+
+        StringWriter result = new StringWriter();
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd'T'HHmmss'Z'", Locale.ENGLISH);
+        dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+        XMLStreamWriter xml = XMLOutputFactory.newInstance().createXMLStreamWriter(result);
+
+        xml.writeStartDocument(StandardCharsets.UTF_8.name(), "1.0");
+        xml.writeCharacters(System.lineSeparator());
+
+        xml.writeStartElement("omegat-stats");
+        xml.writeAttribute("date", dateFormat.format(new Date()));
+        xml.writeCharacters(System.lineSeparator());
+
+        xml.writeStartElement("project");
+        ProjectProperties props = stats.project.getProjectProperties();
+        xml.writeAttribute("name", props.getProjectName());
+        xml.writeAttribute("root", props.getProjectRoot());
+        xml.writeAttribute("source", props.getSourceLanguage().toString());
+        xml.writeAttribute("target", props.getTargetLanguage().toString());
+        xml.writeCharacters(System.lineSeparator());
+
+        // Header stats
+        String[][] headerTable = calcHeaderTable(
+                new StatCount[] { stats.total, stats.remaining, stats.unique, stats.remainingUnique });
+
+        String[] headers = { "segments", "words", "characters-nosp", "characters" };
+        String[] attrs = { "total", "remaining", "unique", "unique-remaining" };
+
+        for (int h = 0; h < headers.length; h++) {
+            xml.writeEmptyElement(headers[h]);
+
+            for (int a = 1; a < attrs.length; a++) {
+                xml.writeAttribute(attrs[a], headerTable[h][a]);
+            }
+            xml.writeCharacters(System.lineSeparator());
+        }
+        xml.writeEndElement();
+        xml.writeCharacters(System.lineSeparator());
+
+        // STATISTICS BY FILE
+        xml.writeStartElement("files");
+        xml.writeCharacters(System.lineSeparator());
+
+        String[] fileAttrs = { "name", "total-segments", "remaining-segments", "unique-segments",
+                "unique-remaining-segments", "total-words", "remaining-words", "unique-words", "unique-remaining-words",
+                "total-characters-nosp", "remaining-characters-nosp", "unique-characters-nosp",
+                "unique-remaining-characters-nosp", "total-characters", "remaining-characters", "unique-characters",
+                "unique-remaining-characters" };
+
+        String[][] filesTable = calcFilesTable(props, stats.files);
+        for (int f = 0; f < filesTable.length; f++) {
+            xml.writeStartElement("file");
+            xml.writeAttribute(fileAttrs[0], filesTable[f][0]); // name
+            xml.writeCharacters(System.lineSeparator());
+            for (int h = 0; h < headers.length; h++) {
+                xml.writeEmptyElement(headers[h]);
+
+                for (int a = 0; a < attrs.length; a++) {
+                    xml.writeAttribute(attrs[a], filesTable[f][1 + a + (h * attrs.length)]);
+                }
+                xml.writeCharacters(System.lineSeparator());
+            }
+            xml.writeEndElement();
+
+            xml.writeCharacters(System.lineSeparator());
+        }
+
+        xml.writeEndElement();
+
+        xml.writeEndElement();
+        xml.writeEndDocument();
+        xml.close();
+
+        return result.toString();
+    }
+
+    private static String getTextResults(ProjectStats stats, StatisticsPanel callback) {
         StringBuilder result = new StringBuilder();
 
         result.append(OStrings.getString("CT_STATS_Project_Statistics"));
         result.append("\n\n");
 
-        String[][] headerTable = calcHeaderTable(new StatCount[] { total, remaining, unique, remainingUnique });
+        String[][] headerTable = calcHeaderTable(
+                new StatCount[] { stats.total, stats.remaining, stats.unique, stats.remainingUnique });
         if (callback != null) {
             callback.setProjectTableData(HT_HEADERS, headerTable);
         }
@@ -241,21 +353,11 @@ public class CalcStandardStatistics extends LongProcessThread {
         // STATISTICS BY FILE
         result.append(OStrings.getString("CT_STATS_FILE_Statistics"));
         result.append("\n\n");
-        String[][] filesTable = calcFilesTable(project.getProjectProperties(), counts);
+        String[][] filesTable = calcFilesTable(stats.project.getProjectProperties(), stats.files);
         if (callback != null) {
             callback.setFilesTableData(FT_HEADERS, filesTable);
         }
         result.append(TextUtil.showTextTable(FT_HEADERS, filesTable, FT_ALIGN));
-
-        if (hotStat != null) {
-            hotStat.numberOfSegmentsTotal = total.segments;
-            hotStat.numberofTranslatedSegments = translated.size();
-            hotStat.numberOfUniqueSegments = unique.segments;
-            hotStat.uniqueCountsByFile.clear();
-            for (FileData fd : counts) {
-                hotStat.uniqueCountsByFile.put(fd.filename, fd.unique.segments);
-            }
-        }
 
         return result.toString();
     }
@@ -299,6 +401,20 @@ public class CalcStandardStatistics extends LongProcessThread {
             r++;
         }
         return table;
+    }
+
+    public static class ProjectStats {
+        public final IProject project;
+        public final StatCount total, unique, remaining, remainingUnique;
+        public final List<FileData> files = new ArrayList<>();
+
+        public ProjectStats(IProject project) {
+            this.project = project;
+            total = new StatCount();
+            unique = new StatCount();
+            remaining = new StatCount();
+            remainingUnique = new StatCount();
+        }
     }
 
     public static class FileData {
