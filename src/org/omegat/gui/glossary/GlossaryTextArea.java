@@ -62,9 +62,11 @@ import javax.swing.text.JTextComponent;
 import javax.swing.text.StyledDocument;
 
 import org.omegat.core.Core;
+import org.omegat.core.CoreEvents;
 import org.omegat.core.data.ProjectProperties;
 import org.omegat.core.data.SourceTextEntry;
 import org.omegat.core.data.StringEntry;
+import org.omegat.core.events.IGlossaryEventListener;
 import org.omegat.gui.common.EntryInfoThreadPane;
 import org.omegat.gui.dialogs.CreateGlossaryEntry;
 import org.omegat.gui.editor.EditorUtils;
@@ -97,7 +99,7 @@ import org.omegat.util.gui.UIThreadsUtil;
  */
 @SuppressWarnings("serial")
 public class GlossaryTextArea extends EntryInfoThreadPane<List<GlossaryEntry>>
-        implements IGlossaries, IPaneMenu {
+        implements IGlossaries, IPaneMenu, IGlossaryEventListener {
 
     private static final String EXPLANATION = OStrings.getString("GUI_GLOSSARYWINDOW_explanation");
 
@@ -134,6 +136,8 @@ public class GlossaryTextArea extends EntryInfoThreadPane<List<GlossaryEntry>>
         addMouseListener(mouseListener);
 
         Core.getEditor().registerPopupMenuConstructors(300, new TransTipsPopup());
+
+        CoreEvents.registerGlossaryEventListener(this);
 
         if (!GraphicsEnvironment.isHeadless()) {
             DragTargetOverlay.apply(this, new FileDropInfo(false) {
@@ -225,19 +229,7 @@ public class GlossaryTextArea extends EntryInfoThreadPane<List<GlossaryEntry>>
             Core.getEditor().remarkOneMarker(TransTipsMarker.class.getName());
         }
 
-        GlossaryEntry.StyledString buf = new GlossaryEntry.StyledString();
-        for (GlossaryEntry entry : entries) {
-            GlossaryEntry.StyledString str = entry.toStyledString();
-            buf.append(str);
-            buf.append("\n\n");
-        }
-        setText(buf.text.toString());
-        StyledDocument doc = getStyledDocument();
-        doc.setCharacterAttributes(0, doc.getLength(), NO_ATTRIBUTES, true); // remove old bold settings first
-        for (int i = 0; i < buf.boldStarts.size(); i++) {
-            doc.setCharacterAttributes(buf.boldStarts.get(i), buf.boldLengths.get(i), PRIORITY_ATTRIBUTES,
-                    true);
-        }
+        CoreEvents.fireGlossaryChanged(entries, this);
     }
 
     /** Clears up the pane. */
@@ -420,6 +412,22 @@ public class GlossaryTextArea extends EntryInfoThreadPane<List<GlossaryEntry>>
             }
         });
         menu.add(notify);
+    }
+
+    @Override
+    public void onGlossaryChanged(final List<GlossaryEntry> entries, final GlossaryTextArea glossaryTextArea) {
+        GlossaryEntry.StyledString buf = new GlossaryEntry.StyledString();
+        for (GlossaryEntry entry : entries) {
+            GlossaryEntry.StyledString str = entry.toStyledString();
+            buf.append(str);
+            buf.append("\n\n");
+        }
+        glossaryTextArea.setText(buf.text.toString());
+        StyledDocument doc = glossaryTextArea.getStyledDocument();
+        doc.setCharacterAttributes(0, doc.getLength(), NO_ATTRIBUTES, true); // remove old bold settings first
+        for (int i = 0; i < buf.boldStarts.size(); i++) {
+            doc.setCharacterAttributes(buf.boldStarts.get(i), buf.boldLengths.get(i), PRIORITY_ATTRIBUTES, true);
+        }
     }
 
 }

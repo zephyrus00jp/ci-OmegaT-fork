@@ -211,16 +211,16 @@ public class GlossaryEntry {
         return hash;
     }
 
-    static class StyledString {
+    public static class StyledString {
         public StringBuilder text = new StringBuilder();
         public List<Integer> boldStarts = new ArrayList<Integer>();
         public List<Integer> boldLengths = new ArrayList<Integer>();
 
-        void markBoldStart() {
+        public void markBoldStart() {
             boldStarts.add(text.length());
         }
 
-        void markBoldEnd() {
+        public void markBoldEnd() {
             int start = boldStarts.get(boldStarts.size() - 1);
             boldLengths.add(text.length() - start);
         }

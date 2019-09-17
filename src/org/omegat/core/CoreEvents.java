@@ -39,7 +39,10 @@ import org.omegat.core.events.IApplicationEventListener;
 import org.omegat.core.events.IEditorEventListener;
 import org.omegat.core.events.IEntryEventListener;
 import org.omegat.core.events.IFontChangedEventListener;
+import org.omegat.core.events.IGlossaryEventListener;
 import org.omegat.core.events.IProjectEventListener;
+import org.omegat.gui.glossary.GlossaryEntry;
+import org.omegat.gui.glossary.GlossaryTextArea;
 import org.omegat.gui.main.IMainWindow;
 import org.omegat.util.Log;
 import org.omegat.util.OStrings;
@@ -58,6 +61,7 @@ public final class CoreEvents {
     private static final List<IEntryEventListener> ENTRY_EVENT_LISTENERS = new CopyOnWriteArrayList<>();
     private static final List<IFontChangedEventListener> FONT_CHANGED_EVENT_LISTENERS = new CopyOnWriteArrayList<>();
     private static final List<IEditorEventListener> EDITOR_EVENT_LISTENERS = new CopyOnWriteArrayList<>();
+    private static IGlossaryEventListener GLOSSARY_EVENT_LISTENER = null;
 
     private CoreEvents() {
     }
@@ -110,6 +114,16 @@ public final class CoreEvents {
     /** Unregister listener. */
     public static void unregisterEditorEventListener(final IEditorEventListener listener) {
         EDITOR_EVENT_LISTENERS.remove(listener);
+    }
+
+    /** Register listener. */
+    public static void registerGlossaryEventListener(final IGlossaryEventListener listener) {
+        GLOSSARY_EVENT_LISTENER = listener;
+    }
+
+    /** Unregister listener. */
+    public static void unregisterGlossaryEventListener() {
+        GLOSSARY_EVENT_LISTENER = null;
     }
 
     /** Fire event. */
@@ -191,6 +205,18 @@ public final class CoreEvents {
                 } catch (Throwable t) {
                     log("ERROR_EVENT_FONT_CHANGED", t);
                 }
+            }
+        });
+    }
+
+    /** Fire event. */
+    public static void fireGlossaryChanged(final List<GlossaryEntry> entries, final GlossaryTextArea glossaryTextArea) {
+        SwingUtilities.invokeLater(() -> {
+            Log.log("LOG_INFO_EVENT_GLOSSARY_CHANGED"); //Log.logInfoRB("LOG_INFO_EVENT_FONT_CHANGED");
+            try {
+                GLOSSARY_EVENT_LISTENER.onGlossaryChanged(entries, glossaryTextArea);
+            } catch (Throwable t) {
+                log("ERROR_EVENT_FONT_CHANGED", t);
             }
         });
     }
