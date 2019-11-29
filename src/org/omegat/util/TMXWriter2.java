@@ -59,6 +59,8 @@ import org.omegat.core.data.TMXEntry;
 public class TMXWriter2 {
     static String lineSeparator = System.lineSeparator();
 
+    public static final String PROP_ID = "id";
+
     private static final XMLOutputFactory FACTORY;
 
     private final OutputStream out;
@@ -171,6 +173,17 @@ public class TMXWriter2 {
 
         xml.writeCharacters("    ");
         xml.writeStartElement("tu");
+        // Output ID as tuid for level 2 only for now, because tuids are not
+        // used by OmegaT and are for external compatibility only.
+        if (levelTwo && propValues != null) {
+            int idIndex = propValues.indexOf(PROP_ID);
+            if (idIndex != -1) {
+                String idValue = propValues.get(idIndex + 1);
+                if (idValue != null) {
+                    xml.writeAttribute("tuid", StringUtil.removeXMLInvalidChars(idValue));
+                }
+            }
+        }
         xml.writeCharacters(lineSeparator);
 
         // add properties
