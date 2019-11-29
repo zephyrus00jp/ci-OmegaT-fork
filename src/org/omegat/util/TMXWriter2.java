@@ -306,11 +306,27 @@ public class TMXWriter2 {
 
     enum TAG_TYPE {
         SINGLE, START, END
-    };
+    }
+
+    private int peekMinTagNumber(String segment) {
+        int result = Integer.MAX_VALUE;
+        Matcher m = TAGS_ANY.matcher(segment);
+        while (m.find()) {
+            int tagNumber = Integer.parseInt(m.group(3));
+            result = Math.min(tagNumber, result);
+        }
+        if (result == Integer.MAX_VALUE) {
+            return 0;
+        } else {
+            return result;
+        }
+    }
 
     private void writeLevelTwo(String segment) throws Exception {
         xml.writeCharacters("        ");
         xml.writeStartElement("seg");
+
+        int minTagNumber = peekMinTagNumber(segment);
 
         TAG_TYPE tagType;
         int pos = 0;
@@ -332,11 +348,16 @@ public class TMXWriter2 {
 
             String tagName = m.group(2);
             String tagNumber = m.group(3);
+            // The TMX spec implies but does not explicitly state that the 'x'
+            // and 'i' attributes should start with 1, but OmegaT starts with 0
+            // internally. For compatibility we output starting with 1. When
+            // reading TMX we should handle both schemes.
+            String ixValue = String.valueOf(Integer.parseInt(tagNumber) - minTagNumber + 1);
 
             switch (tagType) {
             case SINGLE:
                 xml.writeStartElement("ph");
-                xml.writeAttribute("x", tagNumber);
+                xml.writeAttribute("x", ixValue);
                 xml.writeCharacters(m.group());
                 xml.writeEndElement();
                 break;
@@ -344,14 +365,14 @@ public class TMXWriter2 {
                 String endTag = "</" + tagName + tagNumber + ">";
                 if (segment.contains(endTag)) {
                     xml.writeStartElement("bpt");
-                    xml.writeAttribute("i", tagNumber);
-                    xml.writeAttribute("x", tagNumber);
+                    xml.writeAttribute("i", ixValue);
+                    xml.writeAttribute("x", ixValue);
                     xml.writeCharacters(m.group());
                     xml.writeEndElement();
                 } else {
                     xml.writeStartElement("it");
                     xml.writeAttribute("pos", "begin");
-                    xml.writeAttribute("x", tagNumber);
+                    xml.writeAttribute("x", ixValue);
                     xml.writeCharacters(m.group());
                     xml.writeEndElement();
                 }
@@ -360,13 +381,13 @@ public class TMXWriter2 {
                 String startTag = "<" + tagName + tagNumber + ">";
                 if (segment.contains(startTag)) {
                     xml.writeStartElement("ept");
-                    xml.writeAttribute("i", tagNumber);
+                    xml.writeAttribute("i", ixValue);
                     xml.writeCharacters(m.group());
                     xml.writeEndElement();
                 } else {
                     xml.writeStartElement("it");
                     xml.writeAttribute("pos", "end");
-                    xml.writeAttribute("x", tagNumber);
+                    xml.writeAttribute("x", ixValue);
                     xml.writeCharacters(m.group());
                     xml.writeEndElement();
                 }

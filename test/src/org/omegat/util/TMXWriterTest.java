@@ -110,6 +110,20 @@ public class TMXWriterTest extends TestFilterBase {
     }
 
     @Test
+    public void testLevel2write1index() throws Exception {
+        TMXWriter2 wr = new TMXWriter2(outFile, new Language("en-US"), new Language("be-BY"), false, true, false);
+
+        wr.writeEntry("source", "target", RealProjectTest.createEmptyTMXEntry(), null);
+        wr.writeEntry("1<a0/>2", "zz", RealProjectTest.createEmptyTMXEntry(), null);
+        wr.writeEntry("3<a0>4</a0>5", "zz", RealProjectTest.createEmptyTMXEntry(), null);
+        wr.writeEntry("6<a0>7", "zz", RealProjectTest.createEmptyTMXEntry(), null);
+
+        wr.close();
+
+        compareTMX(outFile, new File("test/data/tmx/test-save-tmx14-1index.tmx"));
+    }
+
+    @Test
     public void testLevel2reads() throws Exception {
         final List<String> sources = new ArrayList<String>();
 
@@ -152,6 +166,53 @@ public class TMXWriterTest extends TestFilterBase {
         // useSlash = true so that we can match after segmenting,
         // such as in TmxComplianceTests#testImport2A:
         // "First <b0>sentence. Second</b0> sentence." -> ["First <b0>sentence.", "Second</b0> sentence."]
+        assertEquals("6<a0>7", sources.get(3));
+    }
+
+    @Test
+    public void testLevel2reads1index() throws Exception {
+        final List<String> sources = new ArrayList<String>();
+
+        // patch for 'OmegaT' tmx
+        setCreationTool(new File("test/data/tmx/test-save-tmx14-1index.tmx"), "OmegaT", outFile);
+        load(sources, null, true, false);
+        assertEquals(4, sources.size());
+        assertEquals("source", sources.get(0));
+        assertEquals("1<a0/>2", sources.get(1));
+        assertEquals("3<a0>4</a0>5", sources.get(2));
+        assertEquals("6<a0>7", sources.get(3));
+
+        // patch for 'ext' tmx
+        setCreationTool(new File("test/data/tmx/test-save-tmx14-1index.tmx"), "ext", outFile);
+
+        // extLevel2 = false; useSlash = false
+        load(sources, null, false, false);
+        assertEquals(4, sources.size());
+        assertEquals("source", sources.get(0));
+        assertEquals("12", sources.get(1));
+        assertEquals("345", sources.get(2));
+        assertEquals("67", sources.get(3));
+
+        // extLevel2 = true; useSlash = false
+        load(sources, null, true, false);
+        assertEquals(4, sources.size());
+        assertEquals("source", sources.get(0));
+        assertEquals("1<a0>2", sources.get(1));
+        assertEquals("3<a0>4</a0>5", sources.get(2));
+        assertEquals("6<a0>7", sources.get(3));
+
+        // extLevel2 = true; useSlash = true
+        load(sources, null, true, true);
+        assertEquals(4, sources.size());
+        assertEquals("source", sources.get(0));
+        assertEquals("1<a0/>2", sources.get(1));
+        assertEquals("3<a0>4</a0>5", sources.get(2));
+        // This last seg has an <it> tag with @pos="begin",
+        // which should be treated as a beginning tag even when
+        // useSlash = true so that we can match after segmenting,
+        // such as in TmxComplianceTests#testImport2A:
+        // "First <b0>sentence. Second</b0> sentence." -> ["First
+        // <b0>sentence.", "Second</b0> sentence."]
         assertEquals("6<a0>7", sources.get(3));
     }
 
