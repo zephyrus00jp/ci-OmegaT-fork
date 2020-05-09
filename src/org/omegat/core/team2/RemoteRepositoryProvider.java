@@ -134,9 +134,9 @@ public class RemoteRepositoryProvider {
     protected Mapping oneMapping(String path) {
         List<Mapping> mappings = getMappings(path);
         if (mappings.size() > 1) {
-            throw new RuntimeException("Multiple mapping for file");
+            throw new RuntimeException("Multiple mapping for file '" + path + "'");
         } else if (mappings.isEmpty()) {
-            throw new RuntimeException("There is no mapping for file");
+            throw new RuntimeException("There is no mapping for file '" + path + "'");
         }
 
         return mappings.get(0);
@@ -398,7 +398,7 @@ public class RemoteRepositoryProvider {
                 List<String> files = copy(from, to, filterPrefix, repoMapping.getIncludes(), repoMapping.getExcludes(),
                         eolConversionCharset);
                 for (String f : files) {
-                    addForCommit(repo, withoutSlashes(f));
+                    addForCommit(repo, withoutSlashes(repoMapping.getRepository() + f));
                 }
             } else {
                 // file mapping

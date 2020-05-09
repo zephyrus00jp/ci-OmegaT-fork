@@ -639,6 +639,7 @@ public class RealProject implements IProject {
 
         int numberOfCompiled = 0;
 
+        List<String> targetsToCommit = new ArrayList<>();
         for (String midName : pathList) {
             // shorten filename to that which is relative to src root
             Matcher fileMatch = filePattern.matcher(midName);
@@ -655,6 +656,7 @@ public class RealProject implements IProject {
                 fm.translateFile(srcRoot, midName, locRoot, new FilterContext(config),
                         translateFilesCallback);
                 translateFilesCallback.fileFinished();
+                targetsToCommit.add(midName);
                 numberOfCompiled++;
             }
         }
@@ -665,8 +667,14 @@ public class RealProject implements IProject {
             try {
                 Core.getMainWindow().showStatusMessageRB("TF_COMMIT_TARGET_START");
                 remoteRepositoryProvider.switchAllToLatest();
-                remoteRepositoryProvider.copyFilesFromProjectToRepo(config.getTargetDir().getUnderRoot(), null);
-                remoteRepositoryProvider.commitFiles(config.getTargetDir().getUnderRoot(), "Project translation");
+                String targetDirUnderRoot = config.getTargetDir().getUnderRoot();
+
+                // Copy only files matching the pattern
+                for (String targetFile : targetsToCommit) {
+                    String targetRemote = targetDirUnderRoot + targetFile;
+                    remoteRepositoryProvider.copyFilesFromProjectToRepo(targetRemote, null);
+                }
+                remoteRepositoryProvider.commitFiles(targetDirUnderRoot, "Project translation");
                 Core.getMainWindow().showStatusMessageRB("TF_COMMIT_TARGET_DONE");
             } catch (Exception e) {
                 Log.logErrorRB("TF_COMMIT_TARGET_ERROR");
