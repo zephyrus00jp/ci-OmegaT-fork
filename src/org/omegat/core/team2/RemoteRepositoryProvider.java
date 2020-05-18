@@ -398,7 +398,7 @@ public class RemoteRepositoryProvider {
                 List<String> files = copy(from, to, filterPrefix, repoMapping.getIncludes(), repoMapping.getExcludes(),
                         eolConversionCharset);
                 for (String f : files) {
-                    addForCommit(repo, withoutSlashes(repoMapping.getRepository() + f));
+                    addForCommit(repo, withoutSlashes(withoutLeadingSlash(repoMapping.getRepository()) + f));
                 }
             } else {
                 // file mapping
