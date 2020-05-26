@@ -246,14 +246,35 @@ public class RealProject implements IProject {
 
     public void saveProjectProperties() throws Exception {
         unlockProject();
-        try {
-            SRX.saveTo(config.getProjectSRX(), new File(config.getProjectInternal(), SRX.CONF_SENTSEG));
-            FilterMaster.saveConfig(config.getProjectFilters(),
-                    new File(config.getProjectInternal(), FilterMaster.FILE_FILTERS));
-            ProjectFileStorage.writeProjectFile(config);
-        } finally {
-            lockProject();
-        }
+		try {
+			SRX.saveTo(config.getProjectSRX(), new File(config.getProjectInternal(), SRX.CONF_SENTSEG));
+			FilterMaster.saveConfig(config.getProjectFilters(),
+					new File(config.getProjectInternal(), FilterMaster.FILE_FILTERS));
+			ProjectFileStorage.writeProjectFile(config);
+
+			// Copy segmentation and filters configuration to remote, if needed
+			if (config.hasRepositories()) {
+				RemoteRepositoryProvider remoteRepositoryProvider = new RemoteRepositoryProvider(
+						config.getProjectRootDir(), config.getRepositories());
+				try {
+					Core.getMainWindow().showStatusMessageRB("TF_COMMIT_START");
+					String internalDir = config.getProjectInternalRelative();
+					// TODO
+					// - Is a rebase necessary?
+					remoteRepositoryProvider.copyFilesFromProjectToRepo(internalDir + SRX.CONF_SENTSEG, null);
+					remoteRepositoryProvider.copyFilesFromProjectToRepo(internalDir + FilterMaster.FILE_FILTERS, null);
+					remoteRepositoryProvider.commitFiles(internalDir, "Commit project internal files");
+					Core.getMainWindow().showStatusMessageRB("TF_COMMIT_DONE");
+				} catch (Exception e) {
+					Log.logErrorRB("TF_COMMIT_ERROR");
+					Log.log(e);
+					throw new IOException(OStrings.getString("TF_COMMIT_ERROR") + "\n" + e.getMessage(), e);
+				}
+			}
+
+		} finally {
+			lockProject();
+		}
         Preferences.setPreference(Preferences.SOURCE_LOCALE, config.getSourceLanguage().toString());
         Preferences.setPreference(Preferences.TARGET_LOCALE, config.getTargetLanguage().toString());
     }
@@ -1909,8 +1930,16 @@ public class RealProject implements IProject {
             try {
                 Core.getMainWindow().showStatusMessageRB("TF_COMMIT_START");
                 remoteRepositoryProvider.switchAllToLatest();
-                remoteRepositoryProvider.copyFilesFromProjectToRepo(config.getSourceDir().getUnderRoot(), null);
-                remoteRepositoryProvider.commitFiles(config.getSourceDir().getUnderRoot(), "Commit source files");
+
+                String srcRoot = config.getSourceRoot();
+                String sourceUnderRoot = config.getSourceDir().getUnderRoot();
+
+                List<String> pathList = FileUtil.buildRelativeFilesList(new File(srcRoot), Collections.emptyList(),
+                        config.getSourceRootExcludes());
+                for (String midName : pathList) {
+                	remoteRepositoryProvider.copyFilesFromProjectToRepo(sourceUnderRoot + midName, null);
+                }
+				remoteRepositoryProvider.commitFiles(sourceUnderRoot, "Commit source files");
                 Core.getMainWindow().showStatusMessageRB("TF_COMMIT_DONE");
             } catch (Exception e) {
                 Log.logErrorRB("TF_COMMIT_ERROR");
