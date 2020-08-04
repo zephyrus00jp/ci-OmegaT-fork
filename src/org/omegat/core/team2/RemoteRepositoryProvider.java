@@ -127,7 +127,7 @@ public class RemoteRepositoryProvider {
                 	if (KEEP_SINGLE_MAPPING && !result.isEmpty()) {
                 		Mapping oldMapping = result.get(0);
                 		String oldRemote = oldMapping.repoMapping.getRepository();
-						if (withoutLeadingSlash(m.repoMapping.getRepository()).contains(withoutLeadingSlash(oldRemote))) {
+						if (!path.isEmpty() && withoutLeadingSlash(m.repoMapping.getRepository()).contains(withoutLeadingSlash(oldRemote))) {
 							Log.log("Remove shallower mapping \"" + oldRemote + "\" for \"" + path + "\"");
 							result.remove(0);
 						}
